@@ -1,0 +1,108 @@
+{
+  "Bruno Loschi": {
+    "perfil": "Estagiario",
+    "time": "SRE - TORINO",
+    "dias_ausentes": 0
+  },
+  "Gabriel Abramo": {
+    "perfil": "Efetivo",
+    "time": "SRE - TORINO"
+  },
+  "Lucas Torino": {
+    "perfil": "Efetivo",
+    "time": "SRE - TORINO",
+    "dias_ausentes": 1
+  },
+  "Vinicius Rodrigues dos Santos": {
+    "perfil": "Estagiario",
+    "time": "SRE - TORINO"
+  },
+  "Vitor da Silva Sant'ana": {
+    "perfil": "Efetivo",
+    "time": "SRE - TORINO"
+  },
+  "Felipe Vieira da Silva": {
+    "perfil": "Estagiario",
+    "time": "SRE - PRATO"
+  },
+  "Guilherme dos Santos Ramos": {
+    "perfil": "Efetivo",
+    "time": "SRE - PRATO",
+    "ausencias": [
+      "2026-04-13/2026-04-26"
+    ]
+  },
+  "Iago Lucas Fernandes de Faria": {
+    "perfil": "Estagiario",
+    "time": "SRE - PRATO"
+  },
+  "Leonardo Miranda": {
+    "perfil": "Tech Leader",
+    "time": "GESTÃO",
+    "dias_ausentes": 0
+  },
+  "Lucas Ortiz": {
+    "perfil": "Efetivo",
+    "time": "SRE - PRATO"
+  },
+  "Andre Novaes": {
+    "perfil": "Efetivo",
+    "time": "PROJETOS - GCP",
+    "ausencias": []
+  },
+  "Gustavo Kowalski": {
+    "perfil": "Estagiario",
+    "time": "PROJETOS - GCP",
+    "dias_ausentes": 0
+  },
+  "Gustavo Silva": {
+    "perfil": "Efetivo",
+    "time": "PROJETOS - AWS",
+    "dias_ausentes": 2
+  },
+  "Jefferson Silva": {
+    "perfil": "Tech Leader",
+    "time": "GESTÃO",
+    "dias_ausentes": 0
+  },
+  "Kayke Peres da Costa": {
+    "perfil": "Estagiario",
+    "time": "PROJETOS - AWS",
+    "dias_ausentes": 0
+  },
+  "Kayky Stiliano": {
+    "perfil": "Estagiario",
+    "time": "PROJETOS - AWS",
+    "dias_ausentes": 0
+  },
+  "Matheus Angelo": {
+    "perfil": "Efetivo",
+    "time": "PROJETOS - AWS",
+    "dias_ausentes": 4
+  },
+  "Luany Avila dos Anjos": {
+    "perfil": "Estagiario",
+    "time": "DEV - LÉO",
+    "dias_ausentes": 1
+  },
+  "Matheus Nascimento": {
+    "perfil": "Estagiario",
+    "time": "DEV - LÉO",
+    "dias_ausentes": 1
+  },
+  "Nattan Souza": {
+    "perfil": "Estagiario",
+    "time": "DEV - LÉO",
+    "dias_ausentes": 1
+  },
+  "João Felipe Bertini": {
+    "perfil": "Efetivo",
+    "time": "PROJETOS - AWS",
+    "ausencias": []
+  },
+  "Fernando Januário da Silva Junior": {
+    "perfil": "Efetivo",
+    "time": "PROJETOS - GCP",
+    "dias_ausentes": 0
+  }
+}
