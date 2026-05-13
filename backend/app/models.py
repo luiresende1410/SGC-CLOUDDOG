@@ -12,6 +12,8 @@ class Departamento(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(100), nullable=False, unique=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
     colaboradores = relationship("Colaborador", back_populates="departamento")
@@ -36,6 +38,8 @@ class Colaborador(Base):
     seguro_vida    = Column(Numeric(15, 2), nullable=True, default=0)
     data_inativacao = Column(Date, nullable=True)
     ativo = Column(Boolean, default=True, nullable=False)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -66,6 +70,8 @@ class HistoricoColaborador(Base):
     departamento_anterior = Column(String(100), nullable=True)
     departamento_novo = Column(String(100), nullable=True)
     observacao = Column(Text, nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     criado_por = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
 
@@ -83,6 +89,8 @@ class RegistroCusto(Base):
     cargo_snapshot = Column(String(100), nullable=True)
     nivel_snapshot = Column(String(10), nullable=True)
     tipo_contrato_snapshot = Column(String(10), nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -143,6 +151,8 @@ class Usuario(Base):
     nome = Column(String(200), nullable=False)
     ativo = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False, server_default="false")
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
+    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
 

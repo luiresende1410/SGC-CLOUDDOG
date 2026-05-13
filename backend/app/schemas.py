@@ -33,6 +33,7 @@ class TokenResponse(BaseModel):
 
 class DepartamentoBase(BaseModel):
     nome: str
+    budget_mensal: Optional[Decimal] = None
 
 
 class DepartamentoCreate(DepartamentoBase):
@@ -252,6 +253,7 @@ class DepartamentoRelatorio(BaseModel):
     total: Decimal
     num_colaboradores: int
     colaboradores: List[ColaboradorRelatorio]
+    budget_mensal: Optional[Decimal] = None
 
 
 class RelatorioDepartamentosResponse(BaseModel):

@@ -6,32 +6,36 @@ import TopNavigation from '@cloudscape-design/components/top-navigation'
 import { useAuthStore } from '../../store/authStore'
 import client from '../../api/client'
 
-const menuPrincipal: SideNavigationProps.Item[] = [
+const menuAdmin: SideNavigationProps.Item[] = [
   { type: 'link', text: 'Dashboard', href: '/dashboard' },
   { type: 'link', text: 'Custos por Colaborador', href: '/custos/colaboradores' },
   { type: 'link', text: 'Custos por Departamento', href: '/custos/departamentos' },
+  { type: 'divider' },
+  {
+    type: 'section',
+    text: 'Configuracoes',
+    items: [
+      { type: 'link', text: 'Colaboradores', href: '/colaboradores' },
+      { type: 'link', text: 'Departamentos', href: '/configuracoes/departamentos' },
+      { type: 'link', text: 'Importacao', href: '/importacao' },
+      { type: 'link', text: 'Lancamento de Custo', href: '/lancamento' },
+      { type: 'link', text: 'Parametros de Calculo', href: '/configuracoes/parametros' },
+      { type: 'link', text: 'Tabela Salarial', href: '/configuracoes/tabela-salarial' },
+      { type: 'link', text: 'Usuarios', href: '/configuracoes/usuarios' },
+    ],
+  },
 ]
 
-const menuConfiguracoes: SideNavigationProps.Item = {
-  type: 'section',
-  text: 'Configuracoes',
-  items: [
-    { type: 'link', text: 'Colaboradores', href: '/colaboradores' },
-    { type: 'link', text: 'Departamentos', href: '/configuracoes/departamentos' },
-    { type: 'link', text: 'Importacao', href: '/importacao' },
-    { type: 'link', text: 'Lancamento de Custo', href: '/lancamento' },
-    { type: 'link', text: 'Parametros de Calculo', href: '/configuracoes/parametros' },
-    { type: 'link', text: 'Tabela Salarial', href: '/configuracoes/tabela-salarial' },
-    { type: 'link', text: 'Usuarios', href: '/configuracoes/usuarios' },
-  ],
-}
+const menuComum: SideNavigationProps.Item[] = [
+  { type: 'link', text: 'Dashboard', href: '/dashboard' },
+]
 
 const ROTAS_ADMIN = [
   '/colaboradores',
-  '/configuracoes/departamentos',
-  '/configuracoes/parametros',
-  '/configuracoes/tabela-salarial',
-  '/configuracoes/usuarios',
+  '/configuracoes',
+  '/importacao',
+  '/lancamento',
+  '/custos',
 ]
 
 interface AppLayoutProps {
@@ -49,12 +53,6 @@ export default function AppLayoutWrapper({ children }: AppLayoutProps) {
       navigate('/dashboard', { replace: true })
     }
   }, [isAdmin, location.pathname, navigate])
-
-  const navItems: SideNavigationProps.Item[] = [
-    ...menuPrincipal,
-    { type: 'divider' as const },
-    menuConfiguracoes,
-  ]
 
   const handleLogout = async () => {
     try { await client.post('/auth/logout') } catch {}
@@ -83,7 +81,7 @@ export default function AppLayoutWrapper({ children }: AppLayoutProps) {
           <SideNavigation
             activeHref={location.pathname}
             header={{ text: 'Menu', href: '/dashboard' }}
-            items={navItems}
+            items={isAdmin ? menuAdmin : menuComum}
             onFollow={(e) => {
               e.preventDefault()
               navigate(e.detail.href)

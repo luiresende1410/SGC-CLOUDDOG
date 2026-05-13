@@ -15,7 +15,7 @@ def listar_departamentos(db: Session = Depends(get_db), current_user: models.Usu
 def criar_departamento(dados: schemas.DepartamentoCreate, db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
     if db.query(models.Departamento).filter(models.Departamento.nome == dados.nome).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Departamento '{dados.nome}' ja existe.")
-    dept = models.Departamento(nome=dados.nome)
+    dept = models.Departamento(nome=dados.nome, budget_mensal=dados.budget_mensal)
     db.add(dept)
     db.commit()
     db.refresh(dept)
@@ -29,6 +29,7 @@ def atualizar_departamento(departamento_id: int, dados: schemas.DepartamentoUpda
     if db.query(models.Departamento).filter(models.Departamento.nome == dados.nome, models.Departamento.id != departamento_id).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Departamento '{dados.nome}' ja existe.")
     dept.nome = dados.nome
+    dept.budget_mensal = dados.budget_mensal
     db.commit()
     db.refresh(dept)
     return dept
