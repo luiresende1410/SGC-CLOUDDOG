@@ -1,18 +1,18 @@
-﻿version: '3.9'
+version: '3.9'
 
 services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: clouddog_costs
+      POSTGRES_USER: clouddog
+      POSTGRES_PASSWORD: clouddog123
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    expose:
-      - "5432"
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U clouddog -d clouddog_costs"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,14 +26,16 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      DATABASE_URL: postgresql://clouddog:clouddog123@db:5432/clouddog_costs
+      JWT_SECRET_KEY: sgc-clouddog-prod-secret-2026
+      CORS_ORIGINS: http://98.92.60.195:3000
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
     ports:
       - "3000:3000"
     depends_on:
