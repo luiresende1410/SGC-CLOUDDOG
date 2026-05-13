@@ -7,9 +7,9 @@ import { useAuthStore } from '../../store/authStore'
 import client from '../../api/client'
 
 const menuPrincipal: SideNavigationProps.Item[] = [
+  { type: 'link', text: 'Dashboard', href: '/dashboard' },
   { type: 'link', text: 'Custos por Colaborador', href: '/custos/colaboradores' },
   { type: 'link', text: 'Custos por Departamento', href: '/custos/departamentos' },
-  { type: 'link', text: 'Dashboard', href: '/dashboard' },
 ]
 
 const menuConfiguracoes: SideNavigationProps.Item = {

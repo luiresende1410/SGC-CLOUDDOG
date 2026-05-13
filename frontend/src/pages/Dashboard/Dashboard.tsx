@@ -7,7 +7,7 @@ import Box from '@cloudscape-design/components/box'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 import Alert from '@cloudscape-design/components/alert'
 import Spinner from '@cloudscape-design/components/spinner'
-import ColumnLayout from '@cloudscape-design/components/column-layout'
+import Table from '@cloudscape-design/components/table'
 import PeriodFilter from '../../components/PeriodFilter/PeriodFilter'
 import { relatorioColaboradores, relatorioDepartamentos } from '../../api/relatorios'
 import { useFilterStore } from '../../store/filterStore'
@@ -41,7 +41,8 @@ function StatCard({ title, value, subtitle, loading, color }: StatCardProps) {
   )
 }
 
-interface DepCusto { nome: string; total: number; quantidade: number }
+interface ColaboradorDep { nome: string; cargo: string; tipo_contrato: string; total: number }
+interface DepCusto { id: number; nome: string; total: number; quantidade: number; colaboradores: ColaboradorDep[] }
 interface MesCusto { label: string; total: number; colaboradores: number }
 
 const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
@@ -65,6 +66,7 @@ export default function Dashboard() {
   const [totalDepartamentos, setTotalDepartamentos] = useState(0)
   const [mediaCusto, setMediaCusto] = useState(0)
   const [topDeps, setTopDeps] = useState<DepCusto[]>([])
+  const [expandidos, setExpandidos] = useState<Set<number>>(new Set())
   const [historicoMeses, setHistoricoMeses] = useState<MesCusto[]>([])
   const [loadingHistorico, setLoadingHistorico] = useState(false)
 
@@ -73,7 +75,8 @@ export default function Dashboard() {
       setLoading(true); setErro('')
       try {
         const [respColab, respDep] = await Promise.all([
-          relatorioColaboradores(mes, ano), relatorioDepartamentos(mes, ano),
+          relatorioColaboradores(mes, ano),
+          relatorioDepartamentos(mes, ano),
         ])
         const colaboradores: any[] = respColab.data.colaboradores || []
         const departamentos: any[] = respDep.data.departamentos || []
@@ -82,9 +85,15 @@ export default function Dashboard() {
         setTotalColaboradores(qtd); setTotalCusto(custo)
         setTotalDepartamentos(departamentos.length); setMediaCusto(qtd > 0 ? custo / qtd : 0)
         setTopDeps(departamentos.map((d: any) => ({
-          nome: d.nome, total: toNumber(d.total),
+          id: d.id,
+          nome: d.nome,
+          total: toNumber(d.total),
           quantidade: d.num_colaboradores ?? d.colaboradores?.length ?? 0,
-        })).sort((a: DepCusto, b: DepCusto) => b.total - a.total).slice(0, 5))
+          colaboradores: (d.colaboradores || []).map((c: any) => ({
+            nome: c.nome, cargo: c.cargo,
+            tipo_contrato: c.tipo_contrato, total: toNumber(c.total),
+          })).sort((a: ColaboradorDep, b: ColaboradorDep) => b.total - a.total),
+        })).sort((a: DepCusto, b: DepCusto) => b.total - a.total))
       } catch { setErro('Erro ao carregar dados do dashboard.') }
       finally { setLoading(false) }
     }
@@ -113,6 +122,15 @@ export default function Dashboard() {
     carregarHistorico()
   }, [mes, ano])
 
+  const toggleExpandir = (id: number) => {
+    setExpandidos(prev => {
+      const novo = new Set(prev)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      return novo
+    })
+  }
+
   const periodoLabel = `${MESES[mes - 1]}/${ano}`
   const maxHistorico = Math.max(...historicoMeses.map(m => m.total), 1)
 
@@ -132,6 +150,7 @@ export default function Dashboard() {
           <StatCard title="Custo médio por colaborador" value={formatBRL(mediaCusto)} subtitle="média do período" loading={loading} />
         </Grid>
 
+        {/* Gráfico 3 meses */}
         <Container header={<Header variant="h2" description="Comparativo de custo total nos últimos 3 meses">Evolução de Custos</Header>}>
           {loadingHistorico ? <Box textAlign="center" padding="l"><Spinner /></Box> : (
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 24, padding: '16px 8px', height: 220 }}>
@@ -140,18 +159,9 @@ export default function Dashboard() {
                 const isAtual = i === historicoMeses.length - 1
                 return (
                   <div key={m.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                    <Box variant="small" color="text-body-secondary" fontWeight={isAtual ? 'bold' : 'normal'}>
-                      {formatBRL(m.total)}
-                    </Box>
-                    <div style={{
-                      width: '100%', height: altura,
-                      background: isAtual ? '#0972d3' : '#b0c4de',
-                      borderRadius: '4px 4px 0 0', transition: 'height 0.4s ease',
-                      minHeight: m.total > 0 ? 4 : 0,
-                    }} />
-                    <Box variant="small" fontWeight={isAtual ? 'bold' : 'normal'} color={isAtual ? 'text-status-info' : 'text-body-secondary'}>
-                      {m.label}
-                    </Box>
+                    <Box variant="small" color="text-body-secondary" fontWeight={isAtual ? 'bold' : 'normal'}>{formatBRL(m.total)}</Box>
+                    <div style={{ width: '100%', height: altura, background: isAtual ? '#0972d3' : '#b0c4de', borderRadius: '4px 4px 0 0', transition: 'height 0.4s ease', minHeight: m.total > 0 ? 4 : 0 }} />
+                    <Box variant="small" fontWeight={isAtual ? 'bold' : 'normal'} color={isAtual ? 'text-status-info' : 'text-body-secondary'}>{m.label}</Box>
                     <Box variant="small" color="text-body-secondary">{m.colaboradores} colab.</Box>
                   </div>
                 )
@@ -160,31 +170,68 @@ export default function Dashboard() {
           )}
         </Container>
 
+        {/* Departamentos com expansão */}
         {!loading && topDeps.length > 0 && (
-          <Container header={<Header variant="h2" description="Ordenado por custo total">Custos por Departamento — {periodoLabel}</Header>}>
-            <ColumnLayout columns={1} borders="horizontal">
+          <Container header={<Header variant="h2" description="Clique para expandir e ver colaboradores">Custos por Departamento — {periodoLabel}</Header>}>
+            <SpaceBetween size="xs">
               {topDeps.map((dep, i) => {
                 const pct = totalCusto > 0 ? (dep.total / totalCusto) * 100 : 0
+                const expandido = expandidos.has(dep.id)
                 return (
-                  <div key={dep.nome} style={{ padding: '8px 0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div key={dep.id} style={{ border: '1px solid #e9ebed', borderRadius: 8, overflow: 'hidden' }}>
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', background: expandido ? '#f0f4ff' : '#fff', cursor: 'pointer', userSelect: 'none' }}
+                      onClick={() => toggleExpandir(dep.id)}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <Box variant="small" color="text-body-secondary" fontWeight="bold">#{i + 1}</Box>
                         <Box fontWeight="bold">{dep.nome}</Box>
                         <Box variant="small" color="text-body-secondary">{dep.quantidade} colaborador{dep.quantidade !== 1 ? 'es' : ''}</Box>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <Box fontWeight="bold" color="text-status-info">{formatBRL(dep.total)}</Box>
-                        <Box variant="small" color="text-body-secondary">{pct.toFixed(1)}% do total</Box>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <Box fontWeight="bold" color="text-status-info">{formatBRL(dep.total)}</Box>
+                          <Box variant="small" color="text-body-secondary">{pct.toFixed(1)}% do total</Box>
+                        </div>
+                        <Box color="text-body-secondary">{expandido ? '▲' : '▼'}</Box>
                       </div>
                     </div>
-                    <div style={{ background: '#e9ebed', borderRadius: 4, height: 6 }}>
-                      <div style={{ background: '#0972d3', borderRadius: 4, height: 6, width: `${pct}%`, transition: 'width 0.4s ease' }} />
+                    <div style={{ background: '#e9ebed', height: 4 }}>
+                      <div style={{ background: '#0972d3', height: 4, width: `${pct}%`, transition: 'width 0.4s ease' }} />
                     </div>
+                    {expandido && (
+                      <div style={{ padding: '0 16px 12px' }}>
+                        <Table
+                          items={dep.colaboradores}
+                          columnDefinitions={[
+                            { id: 'nome', header: 'Colaborador', cell: (c) => <Box fontWeight="bold">{c.nome}</Box> },
+                            { id: 'cargo', header: 'Cargo', cell: (c) => c.cargo },
+                            { id: 'tipo', header: 'Tipo', cell: (c) => <Box color={c.tipo_contrato === 'PJ' ? 'text-status-warning' : 'text-status-success'}>{c.tipo_contrato}</Box> },
+                            { id: 'total', header: 'Custo Total', cell: (c) => <Box fontWeight="bold" color="text-status-info">{formatBRL(c.total)}</Box> },
+                            {
+                              id: 'pct', header: '% do Depto',
+                              cell: (c) => {
+                                const p = dep.total > 0 ? (c.total / dep.total) * 100 : 0
+                                return (
+                                  <SpaceBetween direction="vertical" size="xxxs">
+                                    <Box variant="small">{p.toFixed(1)}%</Box>
+                                    <div style={{ background: '#e9ebed', borderRadius: 4, height: 4, width: 60 }}>
+                                      <div style={{ background: '#0972d3', borderRadius: 4, height: 4, width: `${p}%` }} />
+                                    </div>
+                                  </SpaceBetween>
+                                )
+                              }
+                            },
+                          ]}
+                          empty={<Box textAlign="center">Sem colaboradores</Box>}
+                          variant="embedded"
+                        />
+                      </div>
+                    )}
                   </div>
                 )
               })}
-            </ColumnLayout>
+            </SpaceBetween>
           </Container>
         )}
 
