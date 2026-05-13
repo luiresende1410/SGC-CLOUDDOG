@@ -64,12 +64,12 @@ export default function Login() {
           >
             <SpaceBetween size="m">
               {erro && <Alert type="error">{erro}</Alert>}
-              <FormField label="E-mail">
+              <FormField label="Login">
                 <Input
                   type="email"
                   value={email}
                   onChange={({ detail }) => setEmail(detail.value)}
-                  placeholder="seu@email.com"
+                  placeholder="seu login"
                 />
               </FormField>
               <FormField label="Senha">

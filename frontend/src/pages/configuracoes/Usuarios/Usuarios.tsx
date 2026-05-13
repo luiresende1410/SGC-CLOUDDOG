@@ -94,7 +94,7 @@ export default function Usuarios() {
       setSucesso('Usuario criado com sucesso.')
       carregar()
     } catch {
-      setErro('Erro ao criar usuario. Verifique se o e-mail ja esta em uso.')
+      setErro('Erro ao criar usuario. Verifique se o login ja esta em uso.')
     } finally {
       setSalvando(false)
     }
@@ -113,7 +113,7 @@ export default function Usuarios() {
       setSucesso('Cadastro atualizado.')
       carregar()
     } catch {
-      setErro('Erro ao atualizar. Verifique se o e-mail ja esta em uso.')
+      setErro('Erro ao atualizar. Verifique se o login ja esta em uso.')
     } finally {
       setSalvando(false)
     }
@@ -187,7 +187,7 @@ export default function Usuarios() {
               ),
               sortingField: 'nome',
             },
-            { id: 'email', header: 'E-mail', cell: (u) => u.email },
+            { id: 'email', header: 'Login', cell: (u) => u.email },
             {
               id: 'ativo',
               header: 'Status',
@@ -253,8 +253,8 @@ export default function Usuarios() {
           <FormField label="Nome">
             <Input value={novoNome} onChange={({ detail }) => setNovoNome(detail.value)} placeholder="Nome completo" />
           </FormField>
-          <FormField label="E-mail">
-            <Input type="email" value={novoEmail} onChange={({ detail }) => setNovoEmail(detail.value)} placeholder="email@empresa.com" />
+          <FormField label="Login">
+            <Input type="email" value={novoEmail} onChange={({ detail }) => setNovoEmail(detail.value)} placeholder="login ou email" />
           </FormField>
           <FormField label="Senha" description="Minimo 6 caracteres">
             <Input type="password" value={novoSenha} onChange={({ detail }) => setNovoSenha(detail.value)} />
@@ -286,7 +286,7 @@ export default function Usuarios() {
           <FormField label="Nome">
             <Input value={editNome} onChange={({ detail }) => setEditNome(detail.value)} />
           </FormField>
-          <FormField label="E-mail">
+          <FormField label="Login">
             <Input type="email" value={editEmail} onChange={({ detail }) => setEditEmail(detail.value)} />
           </FormField>
           {usuarioAlvo?.id !== usuarioLogado?.id && (
