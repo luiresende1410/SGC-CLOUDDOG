@@ -94,7 +94,7 @@ def agregar_por_colaborador(
         .filter(
             models.RegistroCusto.mes == mes,
             models.RegistroCusto.ano == ano,
-            models.Colaborador.ativo == True,
+
         )
         .all()
     )
