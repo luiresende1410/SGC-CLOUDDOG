@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import CloudscapeAppLayout from '@cloudscape-design/components/app-layout'
 import SideNavigation, { SideNavigationProps } from '@cloudscape-design/components/side-navigation'
@@ -7,11 +7,9 @@ import { useAuthStore } from '../../store/authStore'
 import client from '../../api/client'
 
 const menuPrincipal: SideNavigationProps.Item[] = [
-  { type: 'link', text: 'Dashboard', href: '/dashboard' },
   { type: 'link', text: 'Custos por Colaborador', href: '/custos/colaboradores' },
   { type: 'link', text: 'Custos por Departamento', href: '/custos/departamentos' },
-  { type: 'link', text: 'Importacao', href: '/importacao' },
-  { type: 'link', text: 'Lancamento de Custo', href: '/lancamento' },
+  { type: 'link', text: 'Dashboard', href: '/dashboard' },
 ]
 
 const menuConfiguracoes: SideNavigationProps.Item = {
@@ -20,6 +18,8 @@ const menuConfiguracoes: SideNavigationProps.Item = {
   items: [
     { type: 'link', text: 'Colaboradores', href: '/colaboradores' },
     { type: 'link', text: 'Departamentos', href: '/configuracoes/departamentos' },
+    { type: 'link', text: 'Importacao', href: '/importacao' },
+    { type: 'link', text: 'Lancamento de Custo', href: '/lancamento' },
     { type: 'link', text: 'Parametros de Calculo', href: '/configuracoes/parametros' },
     { type: 'link', text: 'Tabela Salarial', href: '/configuracoes/tabela-salarial' },
     { type: 'link', text: 'Usuarios', href: '/configuracoes/usuarios' },
@@ -44,7 +44,6 @@ export default function AppLayoutWrapper({ children }: AppLayoutProps) {
   const { usuario, logout } = useAuthStore()
   const isAdmin = usuario?.is_admin ?? false
 
-  // Redireciona usuario comum que tenta acessar rota de admin
   React.useEffect(() => {
     if (!isAdmin && ROTAS_ADMIN.some((r) => location.pathname.startsWith(r))) {
       navigate('/dashboard', { replace: true })
@@ -53,7 +52,8 @@ export default function AppLayoutWrapper({ children }: AppLayoutProps) {
 
   const navItems: SideNavigationProps.Item[] = [
     ...menuPrincipal,
-    ...(isAdmin ? [{ type: 'divider' as const }, menuConfiguracoes] : []),
+    { type: 'divider' as const },
+    menuConfiguracoes,
   ]
 
   const handleLogout = async () => {
