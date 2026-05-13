@@ -1,10 +1,5 @@
-﻿"""
+"""
 Servico de logica de negocio central para gestao de custos de colaboradores.
-
-Responsabilidades:
-- Calcular o custo total de um conjunto de componentes
-- Criar ou atualizar (upsert) registros de custo por (colaborador_id, mes, ano)
-- Agregar custos por colaborador e por departamento para um periodo
 """
 
 from decimal import Decimal
@@ -16,11 +11,6 @@ from app import models, schemas
 
 
 def calcular_total(componentes: List[schemas.ComponenteCustoSchema]) -> Decimal:
-    """Calcula o custo total como soma exata dos componentes.
-
-    A soma e feita com aritmetica Decimal para evitar erros de ponto flutuante.
-    Retorna Decimal("0") para lista vazia.
-    """
     return sum((c.valor for c in componentes), Decimal("0"))
 
 
@@ -28,15 +18,6 @@ def upsert_registro_custo(
     db: Session,
     dados: schemas.RegistroCustoCreate,
 ) -> models.RegistroCusto:
-    """Cria ou atualiza registro de custo por (colaborador_id, mes, ano).
-
-    - Se ja existe um registro para a combinacao (colaborador_id, mes, ano),
-      remove os componentes antigos e insere os novos.
-    - Caso contrario, cria um novo RegistroCusto e insere os componentes.
-
-    Faz commit e refresh antes de retornar o objeto atualizado.
-    """
-    # Busca registro existente
     registro = (
         db.query(models.RegistroCusto)
         .filter(
@@ -48,21 +29,18 @@ def upsert_registro_custo(
     )
 
     if registro:
-        # Atualiza: remove componentes antigos e insere novos
         db.query(models.ComponenteCusto).filter(
             models.ComponenteCusto.registro_custo_id == registro.id
         ).delete()
     else:
-        # Cria novo registro
         registro = models.RegistroCusto(
             colaborador_id=dados.colaborador_id,
             mes=dados.mes,
             ano=dados.ano,
         )
         db.add(registro)
-        db.flush()  # para obter o ID gerado pelo banco
+        db.flush()
 
-    # Insere componentes
     for comp in dados.componentes:
         componente = models.ComponenteCusto(
             registro_custo_id=registro.id,
@@ -83,9 +61,8 @@ def agregar_por_colaborador(
 ) -> List[Dict]:
     """Agrega custos por colaborador para o periodo (mes, ano).
 
-    Retorna apenas colaboradores ativos que possuem registro de custo no periodo.
-    Cada item do resultado contem: id, nome, departamento, cargo, nivel,
-    tipo_contrato, total e componentes (dict tipo -> valor).
+    Retorna TODOS os colaboradores que possuem registro de custo no periodo,
+    independente do status ativo/inativo atual.
     """
     registros = (
         db.query(models.RegistroCusto)
@@ -94,7 +71,6 @@ def agregar_por_colaborador(
         .filter(
             models.RegistroCusto.mes == mes,
             models.RegistroCusto.ano == ano,
-
         )
         .all()
     )
@@ -124,18 +100,13 @@ def agregar_por_departamento(
     mes: int,
     ano: int,
 ) -> List[Dict]:
-    """Agrega custos por departamento para o periodo (mes, ano).
-
-    Reutiliza agregar_por_colaborador e agrupa os resultados por departamento.
-    Cada item do resultado contem: id, nome, total, num_colaboradores e colaboradores.
-    """
+    """Agrega custos por departamento para o periodo (mes, ano)."""
     colaboradores_data = agregar_por_colaborador(db, mes, ano)
 
     departamentos = {}
     for colab in colaboradores_data:
         dept_nome = colab["departamento"]
         if dept_nome not in departamentos:
-            # Busca o ID do departamento pelo nome
             dept = (
                 db.query(models.Departamento)
                 .filter(models.Departamento.nome == dept_nome)
