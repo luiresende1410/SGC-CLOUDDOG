@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Table from '@cloudscape-design/components/table'
 import Box from '@cloudscape-design/components/box'
 import SpaceBetween from '@cloudscape-design/components/space-between'
@@ -6,16 +6,24 @@ import Button from '@cloudscape-design/components/button'
 import Header from '@cloudscape-design/components/header'
 import Alert from '@cloudscape-design/components/alert'
 import ContentLayout from '@cloudscape-design/components/content-layout'
-import ExpandableSection from '@cloudscape-design/components/expandable-section'
 import PeriodFilter from '../../components/PeriodFilter/PeriodFilter'
 import { relatorioDepartamentos, exportarDepartamentosCSV } from '../../api/relatorios'
 import { useFilterStore } from '../../store/filterStore'
+
+interface ColaboradorCusto {
+  id: number
+  nome: string
+  cargo: string
+  tipo_contrato: string
+  total: number
+}
 
 interface DepartamentoCusto {
   id: number
   nome: string
   total: number
   quantidade_colaboradores: number
+  colaboradores: ColaboradorCusto[]
 }
 
 const formatBRL = (valor: number) =>
@@ -33,6 +41,7 @@ export default function CustoDepartamento() {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [exportando, setExportando] = useState(false)
+  const [expandidos, setExpandidos] = useState<Set<number>>(new Set())
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -46,6 +55,13 @@ export default function CustoDepartamento() {
           nome: d.nome,
           total: toNumber(d.total),
           quantidade_colaboradores: d.num_colaboradores ?? d.colaboradores?.length ?? 0,
+          colaboradores: (d.colaboradores || []).map((c: any) => ({
+            id: c.id,
+            nome: c.nome,
+            cargo: c.cargo,
+            tipo_contrato: c.tipo_contrato,
+            total: toNumber(c.total),
+          })).sort((a: ColaboradorCusto, b: ColaboradorCusto) => b.total - a.total),
         }))
         .sort((a, b) => b.total - a.total)
       setDados(parsed)
@@ -59,6 +75,15 @@ export default function CustoDepartamento() {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  const toggleExpandir = (id: number) => {
+    setExpandidos(prev => {
+      const novo = new Set(prev)
+      if (novo.has(id)) novo.delete(id)
+      else novo.add(id)
+      return novo
+    })
+  }
 
   const handleExportar = async () => {
     setExportando(true)
@@ -101,11 +126,7 @@ export default function CustoDepartamento() {
       <SpaceBetween size="l">
         <PeriodFilter />
 
-        {erro && (
-          <Alert type="error" onDismiss={() => setErro('')}>
-            {erro}
-          </Alert>
-        )}
+        {erro && <Alert type="error" onDismiss={() => setErro('')}>{erro}</Alert>}
 
         {!loading && dados.length === 0 && !erro && (
           <Alert type="info">
@@ -113,88 +134,89 @@ export default function CustoDepartamento() {
           </Alert>
         )}
 
-        <Table
-          loading={loading}
-          loadingText="Carregando custos..."
-          items={dados}
-          columnDefinitions={[
-            {
-              id: 'rank',
-              header: '#',
-              cell: (_, i) => (
-                <Box color="text-body-secondary" fontWeight="bold">
-                  {(i ?? 0) + 1}
-                </Box>
-              ),
-              width: 50,
-            },
-            {
-              id: 'nome',
-              header: 'Departamento',
-              cell: (d) => <Box fontWeight="bold">{d.nome}</Box>,
-              sortingField: 'nome',
-            },
-            {
-              id: 'colaboradores',
-              header: 'Colaboradores',
-              cell: (d) => d.quantidade_colaboradores,
-              sortingField: 'quantidade_colaboradores',
-            },
-            {
-              id: 'total',
-              header: 'Custo Total',
-              cell: (d) => (
-                <Box fontWeight="bold" color="text-status-info">
-                  {formatBRL(d.total)}
-                </Box>
-              ),
-              sortingField: 'total',
-            },
-            {
-              id: 'media',
-              header: 'Custo Médio',
-              cell: (d) =>
-                d.quantidade_colaboradores > 0
-                  ? formatBRL(d.total / d.quantidade_colaboradores)
-                  : '-',
-            },
-            {
-              id: 'participacao',
-              header: '% do Total',
-              cell: (d) => {
-                const pct = totalGeral > 0 ? (d.total / totalGeral) * 100 : 0
-                return (
-                  <SpaceBetween direction="vertical" size="xxxs">
-                    <Box variant="small">{pct.toFixed(1)}%</Box>
-                    <div style={{ background: '#e9ebed', borderRadius: 4, height: 6, width: 80 }}>
-                      <div
-                        style={{
-                          background: '#0972d3',
-                          borderRadius: 4,
-                          height: 6,
-                          width: `${pct}%`,
-                        }}
+        {loading ? (
+          <Box textAlign="center" padding="xl">Carregando custos...</Box>
+        ) : (
+          <SpaceBetween size="s">
+            {dados.map((dep, i) => {
+              const pct = totalGeral > 0 ? (dep.total / totalGeral) * 100 : 0
+              const expandido = expandidos.has(dep.id)
+              return (
+                <div key={dep.id} style={{ border: '1px solid #e9ebed', borderRadius: 8, overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      background: expandido ? '#f0f4ff' : '#fff',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
+                    onClick={() => toggleExpandir(dep.id)}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <Box color="text-body-secondary" fontWeight="bold">#{i + 1}</Box>
+                      <Box fontWeight="bold" fontSize="heading-s">{dep.nome}</Box>
+                      <Box variant="small" color="text-body-secondary">
+                        {dep.quantidade_colaboradores} colaborador{dep.quantidade_colaboradores !== 1 ? 'es' : ''}
+                      </Box>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <Box fontWeight="bold" color="text-status-info">{formatBRL(dep.total)}</Box>
+                        <Box variant="small" color="text-body-secondary">{pct.toFixed(1)}% do total</Box>
+                      </div>
+                      <Box color="text-body-secondary">{expandido ? '▲' : '▼'}</Box>
+                    </div>
+                  </div>
+                  <div style={{ background: '#e9ebed', height: 4 }}>
+                    <div style={{ background: '#0972d3', height: 4, width: `${pct}%`, transition: 'width 0.4s ease' }} />
+                  </div>
+                  {expandido && (
+                    <div style={{ padding: '0 16px 16px' }}>
+                      <Table
+                        items={dep.colaboradores}
+                        columnDefinitions={[
+                          { id: 'nome', header: 'Colaborador', cell: (c) => <Box fontWeight="bold">{c.nome}</Box> },
+                          { id: 'cargo', header: 'Cargo', cell: (c) => c.cargo },
+                          {
+                            id: 'tipo', header: 'Tipo',
+                            cell: (c) => (
+                              <Box color={c.tipo_contrato === 'PJ' ? 'text-status-warning' : 'text-status-success'}>
+                                {c.tipo_contrato}
+                              </Box>
+                            ),
+                          },
+                          {
+                            id: 'total', header: 'Custo Total',
+                            cell: (c) => <Box fontWeight="bold" color="text-status-info">{formatBRL(c.total)}</Box>,
+                          },
+                          {
+                            id: 'participacao', header: '% do Depto',
+                            cell: (c) => {
+                              const p = dep.total > 0 ? (c.total / dep.total) * 100 : 0
+                              return (
+                                <SpaceBetween direction="vertical" size="xxxs">
+                                  <Box variant="small">{p.toFixed(1)}%</Box>
+                                  <div style={{ background: '#e9ebed', borderRadius: 4, height: 4, width: 60 }}>
+                                    <div style={{ background: '#0972d3', borderRadius: 4, height: 4, width: `${p}%` }} />
+                                  </div>
+                                </SpaceBetween>
+                              )
+                            },
+                          },
+                        ]}
+                        empty={<Box textAlign="center">Sem colaboradores</Box>}
+                        variant="embedded"
                       />
                     </div>
-                  </SpaceBetween>
-                )
-              },
-            },
-          ]}
-          header={
-            <Header
-              counter={`(${dados.length})`}
-              description={`Total geral: ${formatBRL(totalGeral)}`}
-            >
-              {meses[mes - 1]}/{ano}
-            </Header>
-          }
-          empty={
-            <Box textAlign="center" color="inherit">
-              <b>Sem dados para o período</b>
-            </Box>
-          }
-        />
+                  )}
+                </div>
+              )
+            })}
+          </SpaceBetween>
+        )}
       </SpaceBetween>
     </ContentLayout>
   )
