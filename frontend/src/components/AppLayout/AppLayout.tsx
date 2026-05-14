@@ -19,6 +19,7 @@ const menuAdmin: SideNavigationProps.Item[] = [
       { type: 'link', text: 'Departamentos', href: '/configuracoes/departamentos' },
       { type: 'link', text: 'Importacao', href: '/importacao' },
       { type: 'link', text: 'Lancamento de Custo', href: '/lancamento' },
+  { type: 'link', text: 'Certificacoes por Colaborador', href: '/certificacoes' },
       { type: 'link', text: 'Parametros de Calculo', href: '/configuracoes/parametros' },
       { type: 'link', text: 'Tabela Salarial', href: '/configuracoes/tabela-salarial' },
       { type: 'link', text: 'Usuarios', href: '/configuracoes/usuarios' },

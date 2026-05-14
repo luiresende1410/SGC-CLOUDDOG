@@ -12,7 +12,6 @@ class Departamento(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(100), nullable=False, unique=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
     colaboradores = relationship("Colaborador", back_populates="departamento")
@@ -44,7 +43,8 @@ class Colaborador(Base):
     registros_custo = relationship("RegistroCusto", back_populates="colaborador")
     historico = relationship("HistoricoColaborador", back_populates="colaborador",
                              order_by="HistoricoColaborador.data_evento")
-    certificacoes = relationship("Certificacao", back_populates="colaborador", cascade="all, delete-orphan")
+    certificacoes = relationship("Certificacao", back_populates="colaborador",
+                                 cascade="all, delete-orphan")
 
 
 class HistoricoColaborador(Base):
@@ -132,6 +132,21 @@ class TabelaSalarial(Base):
     )
 
 
+class Certificacao(Base):
+    __tablename__ = "certificacoes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    colaborador_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
+    tipo = Column(String(50), nullable=False)
+    nivel = Column(String(50), nullable=False)
+    nome = Column(String(200), nullable=False)
+    data_obtencao = Column(Date, nullable=True)
+    data_expiracao = Column(Date, nullable=True)
+    criado_em = Column(DateTime(timezone=True), server_default=func.now())
+
+    colaborador = relationship("Colaborador", back_populates="certificacoes")
+
+
 class Usuario(Base):
     __tablename__ = "usuarios"
 
@@ -142,17 +157,3 @@ class Usuario(Base):
     ativo = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False, server_default="false")
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
-
-
-class Certificacao(Base):
-    __tablename__ = "certificacoes"
-
-    id = Column(Integer, primary_key=True, index=True)
-    colaborador_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
-    tipo = Column(String(50), nullable=False)  # AWS, GCP, Datadog, Terraform, Outro
-    nome = Column(String(200), nullable=False)
-    mes = Column(SmallInteger, nullable=False)
-    ano = Column(SmallInteger, nullable=False)
-    criado_em = Column(DateTime(timezone=True), server_default=func.now())
-
-    colaborador = relationship("Colaborador", back_populates="certificacoes")

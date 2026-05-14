@@ -380,3 +380,65 @@ class CertificacaoResponse(CertificacaoBase):
     colaborador_id: int
     model_config = ConfigDict(from_attributes=True)
 
+
+
+# ---------------------------------------------------------------------------
+# Certificacoes
+# ---------------------------------------------------------------------------
+
+class CertificacaoBase(BaseModel):
+    tipo: str
+    nivel: str
+    nome: str
+    data_obtencao: Optional[date] = None
+    data_expiracao: Optional[date] = None
+
+
+class CertificacaoCreate(CertificacaoBase):
+    colaborador_id: int
+
+
+class CertificacaoUpdate(BaseModel):
+    tipo: Optional[str] = None
+    nivel: Optional[str] = None
+    nome: Optional[str] = None
+    data_obtencao: Optional[date] = None
+    data_expiracao: Optional[date] = None
+
+
+class CertificacaoResponse(CertificacaoBase):
+    id: int
+    colaborador_id: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CertificacaoPorTipo(BaseModel):
+    tipo: str
+    quantidade: int
+
+
+class CertificacaoPorDepartamento(BaseModel):
+    departamento: str
+    tipo: str
+    quantidade: int
+
+
+class RelatorioCertificacoesResponse(BaseModel):
+    total: int
+    por_tipo: List[CertificacaoPorTipo]
+    por_departamento: List[CertificacaoPorDepartamento]
+
+# ---------------------------------------------------------------------------
+# Certificacao
+# ---------------------------------------------------------------------------
+
+class CertificacaoBase(BaseModel):
+    nome: str
+
+class CertificacaoCreate(CertificacaoBase):
+    colaborador_id: int
+
+class CertificacaoResponse(CertificacaoBase):
+    id: int
+    colaborador_id: int
+    model_config = ConfigDict(from_attributes=True)

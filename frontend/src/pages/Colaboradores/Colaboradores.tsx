@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Table from '@cloudscape-design/components/table'
 import Box from '@cloudscape-design/components/box'
 import SpaceBetween from '@cloudscape-design/components/space-between'
@@ -15,11 +15,10 @@ import Input from '@cloudscape-design/components/input'
 import Textarea from '@cloudscape-design/components/textarea'
 import ColumnLayout from '@cloudscape-design/components/column-layout'
 import ColaboradorForm from '../../components/ColaboradorForm/ColaboradorForm'
+import CertificacoesColaborador from '../../components/CertificacoesColaborador/CertificacoesColaborador'
 import { listarColaboradores, inativarColaborador, listarHistorico } from '../../api/colaboradores'
 import { listarDepartamentos } from '../../api/departamentos'
 import type { Colaborador, Departamento, HistoricoColaborador } from '../../types'
-import { useAuthStore } from '../../store/authStore'
-import CertificacoesColaborador from './CertificacoesColaborador'
 
 const PAGE_SIZE = 20
 
@@ -38,8 +37,6 @@ const EVENTO_LABEL: Record<string, { label: string; color: string }> = {
 const fmtDate = (d?: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'
 
 export default function Colaboradores() {
-  const usuarioLogado = useAuthStore((s) => s.usuario)
-  const isAdmin = usuarioLogado?.is_admin ?? false
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([])
   const [departamentos, setDepartamentos] = useState<Departamento[]>([])
   const [loading, setLoading] = useState(false)
@@ -59,10 +56,11 @@ export default function Colaboradores() {
 
   // Historico
   const [modalHistorico, setModalHistorico] = useState<Colaborador | null>(null)
-  // Certificacoes
-  const [modalCertificacoes, setModalCertificacoes] = useState<Colaborador | null>(null)
   const [historico, setHistorico] = useState<HistoricoColaborador[]>([])
   const [loadingHistorico, setLoadingHistorico] = useState(false)
+
+  // Certificacoes
+  const [modalCerts, setModalCerts] = useState<Colaborador | null>(null)
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -183,6 +181,7 @@ export default function Colaboradores() {
             cell: (c) => (
               <SpaceBetween direction="horizontal" size="xs">
                 <Button variant="inline-link" onClick={() => { setColaboradorEditando(c); setModalAberto(true) }}>Editar</Button>
+                <Button variant="inline-link" onClick={() => setModalCerts(c)}>Certs</Button>
                 <Button variant="inline-link" onClick={() => abrirHistorico(c)}>Historico</Button>
                 {c.ativo && <Button variant='inline-link' onClick={() => { setDataInativacao(new Date().toISOString().split('T')[0]); setObsInativacao(''); setModalInativar(c); }}>Inativar</Button>}
               </SpaceBetween>
@@ -241,6 +240,21 @@ export default function Colaboradores() {
           onSuccess={() => { setModalAberto(false); carregar() }}
           onCancel={() => setModalAberto(false)}
         />
+      </Modal>
+
+      {/* Modal certificacoes */}
+      <Modal
+        visible={!!modalCerts}
+        onDismiss={() => setModalCerts(null)}
+        header={`Certificacoes — ${modalCerts?.nome}`}
+        size="large"
+      >
+        {modalCerts && (
+          <CertificacoesColaborador
+            colaboradorId={modalCerts.id}
+            colaboradorNome={modalCerts.nome}
+          />
+        )}
       </Modal>
 
       {/* Modal inativar com data */}
@@ -339,7 +353,3 @@ export default function Colaboradores() {
     </>
   )
 }
-
-
-
-

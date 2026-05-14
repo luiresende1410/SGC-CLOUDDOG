@@ -118,7 +118,7 @@ def agregar_por_departamento(
                 "total": Decimal("0"),
                 "num_colaboradores": 0,
                 "colaboradores": [],
-                "budget_mensal": dept.budget_mensal if dept else None,
+                
             }
         departamentos[dept_nome]["total"] += colab["total"]
         departamentos[dept_nome]["num_colaboradores"] += 1

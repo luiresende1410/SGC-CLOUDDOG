@@ -75,3 +75,36 @@ export interface HistoricoColaborador {
   criado_em?: string
 }
 
+
+export interface Certificacao {
+  id: number
+  colaborador_id: number
+  tipo: string
+  nivel: string
+  nome: string
+  data_obtencao?: string
+  data_expiracao?: string
+}
+
+export interface CertificacaoPorTipo {
+  tipo: string
+  quantidade: number
+}
+
+export interface CertificacaoPorDepartamento {
+  departamento: string
+  tipo: string
+  quantidade: number
+}
+
+export interface RelatorioCertificacoes {
+  total: number
+  por_tipo: CertificacaoPorTipo[]
+  por_departamento: CertificacaoPorDepartamento[]
+}
+
+export interface Certificacao {
+  id: number
+  colaborador_id: number
+  nome: string
+}

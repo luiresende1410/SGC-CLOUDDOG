@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    allowedHosts: ["sgc.clouddog.com.br"],
     port: 3000,
     host: true,
     watch: {

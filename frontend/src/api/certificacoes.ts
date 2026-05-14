@@ -1,28 +1,14 @@
 import client from './client'
+import type { Certificacao } from '../types'
 
-export interface Certificacao {
-  id: number
-  colaborador_id: number
-  tipo: string
-  nome: string
-  mes: number
-  ano: number
-}
+export const listarCertificacoes = () =>
+  client.get<Certificacao[]>('/certificacoes')
 
-export const listarCertificacoes = (colaborador_id?: number) =>
-  client.get<Certificacao[]>('/certificacoes', { params: colaborador_id ? { colaborador_id } : {} })
+export const listarCertificacoesPorColaborador = (colaboradorId: number) =>
+  client.get<Certificacao[]>(`/certificacoes/colaborador/${colaboradorId}`)
 
-export const criarCertificacao = (dados: Omit<Certificacao, 'id'>) =>
+export const criarCertificacao = (dados: { colaborador_id: number; nome: string }) =>
   client.post<Certificacao>('/certificacoes', dados)
-
-export const atualizarCertificacao = (id: number, dados: Partial<Certificacao>) =>
-  client.put<Certificacao>(`/certificacoes/${id}`, dados)
 
 export const excluirCertificacao = (id: number) =>
   client.delete(`/certificacoes/${id}`)
-
-export const relatorioPorTipo = () =>
-  client.get<{tipo: string, total: number}[]>('/certificacoes/relatorio/por-tipo')
-
-export const relatorioPorDepartamento = () =>
-  client.get<{departamento: string, total: number, por_tipo: Record<string, number>}[]>('/certificacoes/relatorio/por-departamento')

@@ -13,6 +13,7 @@ import ParametrosCalculo from './pages/configuracoes/ParametrosCalculo/Parametro
 import TabelaSalarial from './pages/configuracoes/TabelaSalarial/TabelaSalarial'
 import Departamentos from './pages/configuracoes/Departamentos/Departamentos'
 import Usuarios from './pages/configuracoes/Usuarios/Usuarios'
+import CertificacoesColaborador from './pages/CertificacoesColaborador/CertificacoesColaborador'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
@@ -97,6 +98,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Departamentos />
+          </ProtectedRoute>
+        }
+      />
+            <Route
+        path="/certificacoes"
+        element={
+          <ProtectedRoute>
+            <CertificacoesColaborador />
           </ProtectedRoute>
         }
       />
