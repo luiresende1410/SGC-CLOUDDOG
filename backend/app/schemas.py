@@ -355,3 +355,28 @@ class AlterarPerfilRequest(BaseModel):
 
 
 
+
+# ---------------------------------------------------------------------------
+# Certificacoes
+# ---------------------------------------------------------------------------
+
+class CertificacaoBase(BaseModel):
+    tipo: str
+    nome: str
+    mes: int
+    ano: int
+
+class CertificacaoCreate(CertificacaoBase):
+    colaborador_id: int
+
+class CertificacaoUpdate(BaseModel):
+    tipo: Optional[str] = None
+    nome: Optional[str] = None
+    mes: Optional[int] = None
+    ano: Optional[int] = None
+
+class CertificacaoResponse(CertificacaoBase):
+    id: int
+    colaborador_id: int
+    model_config = ConfigDict(from_attributes=True)
+

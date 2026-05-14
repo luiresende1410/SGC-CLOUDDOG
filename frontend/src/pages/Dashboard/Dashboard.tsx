@@ -9,6 +9,8 @@ import Alert from '@cloudscape-design/components/alert'
 import Spinner from '@cloudscape-design/components/spinner'
 import Table from '@cloudscape-design/components/table'
 import PeriodFilter from '../../components/PeriodFilter/PeriodFilter'
+import CertificacoesDashboard from './CertificacoesDashboard'
+import CertificacoesDashboard from './CertificacoesDashboard'
 import { relatorioColaboradores, relatorioDepartamentos } from '../../api/relatorios'
 import { useFilterStore } from '../../store/filterStore'
 

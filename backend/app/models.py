@@ -1,4 +1,4 @@
-﻿from sqlalchemy import (
+from sqlalchemy import (
     Column, Integer, SmallInteger, String, Boolean, Date, Numeric,
     DateTime, ForeignKey, UniqueConstraint, CheckConstraint, Text
 )
@@ -12,7 +12,6 @@ class Departamento(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(100), nullable=False, unique=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
     budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -28,7 +27,7 @@ class Colaborador(Base):
     departamento_id = Column(Integer, ForeignKey("departamentos.id"), nullable=False)
     cargo = Column(String(100), nullable=False)
     nivel = Column(String(10), nullable=True)
-    tipo_contrato = Column(String(10), nullable=False)  # CLT / PJ
+    tipo_contrato = Column(String(10), nullable=False)
     data_admissao = Column(Date, nullable=False)
     salario_base   = Column(Numeric(15, 2), nullable=True)
     bonus_aws      = Column(Numeric(15, 2), nullable=True, default=0)
@@ -38,8 +37,6 @@ class Colaborador(Base):
     seguro_vida    = Column(Numeric(15, 2), nullable=True, default=0)
     data_inativacao = Column(Date, nullable=True)
     ativo = Column(Boolean, default=True, nullable=False)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -47,16 +44,14 @@ class Colaborador(Base):
     registros_custo = relationship("RegistroCusto", back_populates="colaborador")
     historico = relationship("HistoricoColaborador", back_populates="colaborador",
                              order_by="HistoricoColaborador.data_evento")
+    certificacoes = relationship("Certificacao", back_populates="colaborador", cascade="all, delete-orphan")
 
 
 class HistoricoColaborador(Base):
-    """Rastreia eventos de mudanca no cadastro do colaborador ao longo do tempo."""
     __tablename__ = "historico_colaboradores"
 
     id = Column(Integer, primary_key=True, index=True)
     colaborador_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
-    # Tipos: admissao | promocao | ajuste_salarial | mudanca_cargo | mudanca_depto
-    #        mudanca_contrato | inativacao | reativacao | observacao
     tipo_evento = Column(String(50), nullable=False)
     data_evento = Column(Date, nullable=False)
     cargo_anterior = Column(String(100), nullable=True)
@@ -70,8 +65,6 @@ class HistoricoColaborador(Base):
     departamento_anterior = Column(String(100), nullable=True)
     departamento_novo = Column(String(100), nullable=True)
     observacao = Column(Text, nullable=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     criado_por = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
 
@@ -85,12 +78,9 @@ class RegistroCusto(Base):
     colaborador_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
     mes = Column(SmallInteger, nullable=False)
     ano = Column(SmallInteger, nullable=False)
-    # Snapshot do estado do colaborador no momento do registro
     cargo_snapshot = Column(String(100), nullable=True)
     nivel_snapshot = Column(String(10), nullable=True)
     tipo_contrato_snapshot = Column(String(10), nullable=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -151,8 +141,18 @@ class Usuario(Base):
     nome = Column(String(200), nullable=False)
     ativo = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False, server_default="false")
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
-    budget_mensal = Column(Numeric(12, 2), nullable=True)
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Certificacao(Base):
+    __tablename__ = "certificacoes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    colaborador_id = Column(Integer, ForeignKey("colaboradores.id"), nullable=False)
+    tipo = Column(String(50), nullable=False)  # AWS, GCP, Datadog, Terraform, Outro
+    nome = Column(String(200), nullable=False)
+    mes = Column(SmallInteger, nullable=False)
+    ano = Column(SmallInteger, nullable=False)
+    criado_em = Column(DateTime(timezone=True), server_default=func.now())
+
+    colaborador = relationship("Colaborador", back_populates="certificacoes")
