@@ -18,6 +18,8 @@ import ColaboradorForm from '../../components/ColaboradorForm/ColaboradorForm'
 import { listarColaboradores, inativarColaborador, listarHistorico } from '../../api/colaboradores'
 import { listarDepartamentos } from '../../api/departamentos'
 import type { Colaborador, Departamento, HistoricoColaborador } from '../../types'
+import { useAuthStore } from '../../store/authStore'
+import CertificacoesColaborador from './CertificacoesColaborador'
 
 const PAGE_SIZE = 20
 
@@ -36,6 +38,8 @@ const EVENTO_LABEL: Record<string, { label: string; color: string }> = {
 const fmtDate = (d?: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'
 
 export default function Colaboradores() {
+  const usuarioLogado = useAuthStore((s) => s.usuario)
+  const isAdmin = usuarioLogado?.is_admin ?? false
   const [colaboradores, setColaboradores] = useState<Colaborador[]>([])
   const [departamentos, setDepartamentos] = useState<Departamento[]>([])
   const [loading, setLoading] = useState(false)
@@ -55,6 +59,8 @@ export default function Colaboradores() {
 
   // Historico
   const [modalHistorico, setModalHistorico] = useState<Colaborador | null>(null)
+  // Certificacoes
+  const [modalCertificacoes, setModalCertificacoes] = useState<Colaborador | null>(null)
   const [historico, setHistorico] = useState<HistoricoColaborador[]>([])
   const [loadingHistorico, setLoadingHistorico] = useState(false)
 
