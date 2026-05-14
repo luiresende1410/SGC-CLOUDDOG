@@ -16,10 +16,14 @@ router = APIRouter(prefix="/certificacoes", tags=["Certificacoes"])
 
 @router.get("", response_model=List[schemas.CertificacaoResponse])
 def listar_certificacoes(
+    colaborador_id: int = None,
     db: Session = Depends(get_db),
     current_user: models.Usuario = Depends(get_current_user),
 ):
-    return db.query(models.Certificacao).all()
+    query = db.query(models.Certificacao)
+    if colaborador_id is not None:
+        query = query.filter(models.Certificacao.colaborador_id == colaborador_id)
+    return query.all()
 
 
 @router.get("/colaborador/{colaborador_id}", response_model=List[schemas.CertificacaoResponse])

@@ -434,6 +434,10 @@ class RelatorioCertificacoesResponse(BaseModel):
 
 class CertificacaoBase(BaseModel):
     nome: str
+    tipo: Optional[str] = None
+    nivel: Optional[str] = None
+    data_obtencao: Optional[date] = None
+    data_expiracao: Optional[date] = None
 
 class CertificacaoCreate(CertificacaoBase):
     colaborador_id: int

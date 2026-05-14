@@ -107,4 +107,8 @@ export interface Certificacao {
   id: number
   colaborador_id: number
   nome: string
+  tipo?: string
+  nivel?: string
+  data_obtencao?: string
+  data_expiracao?: string
 }

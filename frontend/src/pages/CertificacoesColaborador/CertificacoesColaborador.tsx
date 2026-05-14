@@ -9,9 +9,37 @@ import Select from '@cloudscape-design/components/select'
 import Alert from '@cloudscape-design/components/alert'
 import FormField from '@cloudscape-design/components/form-field'
 import Input from '@cloudscape-design/components/input'
+import ExpandableSection from '@cloudscape-design/components/expandable-section'
+import Badge from '@cloudscape-design/components/badge'
 import { listarCertificacoes, criarCertificacao, excluirCertificacao } from '../../api/certificacoes'
 import { listarColaboradores } from '../../api/colaboradores'
 import type { Certificacao, Colaborador } from '../../types'
+
+const TIPOS_CERT = [
+  { label: 'AWS', value: 'AWS' },
+  { label: 'GCP', value: 'GCP' },
+  { label: 'Azure', value: 'Azure' },
+  { label: 'Datadog', value: 'Datadog' },
+  { label: 'Terraform', value: 'Terraform' },
+  { label: 'Kubernetes', value: 'Kubernetes' },
+  { label: 'Docker', value: 'Docker' },
+  { label: 'Linux', value: 'Linux' },
+  { label: 'Outro', value: 'Outro' },
+]
+
+const NIVEIS_CERT = [
+  { label: 'Foundational', value: 'Foundational' },
+  { label: 'Associate', value: 'Associate' },
+  { label: 'Professional', value: 'Professional' },
+  { label: 'Specialty', value: 'Specialty' },
+  { label: 'Expert', value: 'Expert' },
+]
+
+const BADGE_COLORS: Record<string, string> = {
+  AWS: 'blue', GCP: 'green', Azure: 'blue', Datadog: 'grey', Terraform: 'grey', Kubernetes: 'blue',
+}
+
+const fmtDate = (d?: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'
 
 export default function CertificacoesColaborador() {
   const [certificacoes, setCertificacoes] = useState<Certificacao[]>([])
@@ -19,8 +47,13 @@ export default function CertificacoesColaborador() {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const [modalAberto, setModalAberto] = useState(false)
-  const [novoNome, setNovoNome] = useState('')
   const [colaboradorSelecionado, setColaboradorSelecionado] = useState<string>('')
+  const [tipo, setTipo] = useState('')
+  const [nivel, setNivel] = useState('')
+  const [nome, setNome] = useState('')
+  const [dataObtencao, setDataObtencao] = useState('')
+  const [dataExpiracao, setDataExpiracao] = useState('')
+  const [salvando, setSalvando] = useState(false)
 
   const carregar = useCallback(async () => {
     setLoading(true)
@@ -41,16 +74,31 @@ export default function CertificacoesColaborador() {
 
   useEffect(() => { carregar() }, [carregar])
 
-  const handleCriar = async () => {
-    if (!colaboradorSelecionado || !novoNome.trim()) return
+  const limparForm = () => {
+    setColaboradorSelecionado(''); setTipo(''); setNivel(''); setNome('')
+    setDataObtencao(''); setDataExpiracao('')
+  }
+
+  const handleSalvar = async () => {
+    if (!colaboradorSelecionado || !nome.trim()) return
+    setSalvando(true)
+    setErro('')
     try {
-      await criarCertificacao({ colaborador_id: Number(colaboradorSelecionado), nome: novoNome.trim() })
+      await criarCertificacao({
+        colaborador_id: Number(colaboradorSelecionado),
+        nome: nome.trim(),
+        tipo: tipo || undefined,
+        nivel: nivel || undefined,
+        data_obtencao: dataObtencao || undefined,
+        data_expiracao: dataExpiracao || undefined,
+      })
       setModalAberto(false)
-      setNovoNome('')
-      setColaboradorSelecionado('')
+      limparForm()
       carregar()
     } catch {
-      setErro('Erro ao criar certificacao.')
+      setErro('Erro ao salvar certificacao.')
+    } finally {
+      setSalvando(false)
     }
   }
 
@@ -96,42 +144,46 @@ export default function CertificacoesColaborador() {
           </Box>
         ) : (
           agrupado.map(({ colaborador, certs }) => (
-            <Table
+            <ExpandableSection
               key={colaborador.id}
-              items={certs}
-              columnDefinitions={[
-                { id: 'nome', header: 'Certificacao', cell: (c) => c.nome },
-                {
-                  id: 'acoes',
-                  header: 'Acoes',
-                  cell: (c) => (
-                    <Button variant="inline-link" onClick={() => handleExcluir(c.id)}>
-                      Remover
-                    </Button>
-                  ),
-                  width: 120,
-                },
-              ]}
-              header={
-                <Header variant="h3" counter={`(${certs.length})`}>
-                  {colaborador.nome}
-                </Header>
-              }
-              variant="embedded"
-            />
+              headerText={`${colaborador.nome} (${certs.length})`}
+              variant="container"
+            >
+              <Table
+                items={certs}
+                columnDefinitions={[
+                  {
+                    id: 'tipo', header: 'Tipo', width: 120,
+                    cell: (c) => c.tipo ? <Badge color={(BADGE_COLORS[c.tipo] || 'grey') as any}>{c.tipo}</Badge> : '-',
+                  },
+                  { id: 'nivel', header: 'Nivel', width: 130, cell: (c) => c.nivel || '-' },
+                  { id: 'nome', header: 'Certificacao', cell: (c) => c.nome },
+                  { id: 'obtencao', header: 'Obtida em', width: 120, cell: (c) => fmtDate(c.data_obtencao) },
+                  { id: 'expiracao', header: 'Expira em', width: 120, cell: (c) => fmtDate(c.data_expiracao) },
+                  {
+                    id: 'acoes', header: 'Acoes', width: 100,
+                    cell: (c) => (
+                      <Button variant="inline-link" onClick={() => handleExcluir(c.id)}>Remover</Button>
+                    ),
+                  },
+                ]}
+                variant="embedded"
+              />
+            </ExpandableSection>
           ))
         )}
       </SpaceBetween>
 
       <Modal
         visible={modalAberto}
-        onDismiss={() => setModalAberto(false)}
+        onDismiss={() => { setModalAberto(false); limparForm() }}
         header="Nova Certificacao"
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
-              <Button variant="link" onClick={() => setModalAberto(false)}>Cancelar</Button>
-              <Button variant="primary" onClick={handleCriar} disabled={!colaboradorSelecionado || !novoNome.trim()}>
+              <Button variant="link" onClick={() => { setModalAberto(false); limparForm() }}>Cancelar</Button>
+              <Button variant="primary" loading={salvando} onClick={handleSalvar}
+                disabled={!colaboradorSelecionado || !nome.trim()}>
                 Salvar
               </Button>
             </SpaceBetween>
@@ -147,12 +199,30 @@ export default function CertificacoesColaborador() {
               onChange={({ detail }) => setColaboradorSelecionado(detail.selectedOption.value || '')}
             />
           </FormField>
-          <FormField label="Nome da Certificacao">
-            <Input
-              value={novoNome}
-              onChange={({ detail }) => setNovoNome(detail.value)}
-              placeholder="Ex: AWS Solutions Architect"
+          <FormField label="Tipo (provedor)">
+            <Select
+              selectedOption={tipo ? { label: tipo, value: tipo } : null}
+              options={TIPOS_CERT}
+              placeholder="Selecione"
+              onChange={({ detail }) => setTipo(detail.selectedOption.value || '')}
             />
+          </FormField>
+          <FormField label="Nivel">
+            <Select
+              selectedOption={nivel ? { label: nivel, value: nivel } : null}
+              options={NIVEIS_CERT}
+              placeholder="Selecione"
+              onChange={({ detail }) => setNivel(detail.selectedOption.value || '')}
+            />
+          </FormField>
+          <FormField label="Nome da certificacao" description="Ex: AWS Solutions Architect">
+            <Input value={nome} onChange={({ detail }) => setNome(detail.value)} placeholder="Nome completo" />
+          </FormField>
+          <FormField label="Data de obtencao">
+            <Input type="date" value={dataObtencao} onChange={({ detail }) => setDataObtencao(detail.value)} />
+          </FormField>
+          <FormField label="Data de expiracao">
+            <Input type="date" value={dataExpiracao} onChange={({ detail }) => setDataExpiracao(detail.value)} />
           </FormField>
         </SpaceBetween>
       </Modal>
