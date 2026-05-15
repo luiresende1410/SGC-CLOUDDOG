@@ -46,6 +46,8 @@ export interface ParametroCalculo {
   chave: string
   valor: number
   descricao?: string
+  tipo_valor?: string
+  aplica_a?: string
 }
 
 export interface TabelaSalarial {

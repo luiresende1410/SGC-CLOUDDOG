@@ -11,6 +11,7 @@ const menuAdmin: SideNavigationProps.Item[] = [
   { type: 'link', text: 'Custos por Colaborador', href: '/custos/colaboradores' },
   { type: 'link', text: 'Certificacoes por Colaborador', href: '/certificacoes' },
   { type: 'link', text: 'Custos por Departamento', href: '/custos/departamentos' },
+  { type: 'link', text: 'Guia do Sistema', href: '/guia' },
   { type: 'divider' },
   {
     type: 'section',
@@ -29,6 +30,7 @@ const menuAdmin: SideNavigationProps.Item[] = [
 
 const menuComum: SideNavigationProps.Item[] = [
   { type: 'link', text: 'Dashboard', href: '/dashboard' },
+  { type: 'link', text: 'Guia do Sistema', href: '/guia' },
 ]
 
 const ROTAS_ADMIN = [

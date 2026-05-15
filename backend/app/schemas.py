@@ -269,11 +269,19 @@ class ParametroCalculoBase(BaseModel):
     chave: str
     valor: Decimal
     descricao: Optional[str] = None
+    tipo_valor: Optional[str] = "numerico"  # percentual | fixo | numerico
+    aplica_a: Optional[str] = "todos"  # CLT | PJ | todos
+
+
+class ParametroCalculoCreate(ParametroCalculoBase):
+    pass
 
 
 class ParametroCalculoUpdate(BaseModel):
     valor: Decimal
     descricao: Optional[str] = None
+    tipo_valor: Optional[str] = None
+    aplica_a: Optional[str] = None
 
 
 class ParametroCalculoResponse(ParametroCalculoBase):

@@ -95,7 +95,7 @@ def relatorio_certificacoes(
         elif 'AZURE' in nome:
             provedor = 'Azure'
         elif 'HASHICORP' in nome or 'TERRAFORM' in nome:
-            provedor = 'HashiCorp'
+            provedor = 'Terraform'
         elif 'DATADOG' in nome:
             provedor = 'Datadog'
         else:
@@ -117,7 +117,7 @@ def relatorio_certificacoes(
             elif 'AZURE' in nome:
                 provedor = 'Azure'
             elif 'HASHICORP' in nome or 'TERRAFORM' in nome:
-                provedor = 'HashiCorp'
+                provedor = 'Terraform'
             elif 'DATADOG' in nome:
                 provedor = 'Datadog'
             else:

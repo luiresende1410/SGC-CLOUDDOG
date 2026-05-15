@@ -115,6 +115,8 @@ class ParametroCalculo(Base):
     chave = Column(String(50), nullable=False, unique=True)
     valor = Column(Numeric(15, 4), nullable=False)
     descricao = Column(String(200), nullable=True)
+    tipo_valor = Column(String(20), nullable=False, server_default="numerico")  # percentual | fixo | numerico
+    aplica_a = Column(String(10), nullable=False, server_default="todos")  # CLT | PJ | todos
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
