@@ -66,7 +66,7 @@ export default function Colaboradores() {
     setLoading(true)
     setErro('')
     try {
-      const params: any = { page: pagina, page_size: PAGE_SIZE }
+      const params: any = { page: 1, page_size: 100 }
       if (busca) params.q = busca
       if (depFiltro) params.departamento_id = Number(depFiltro)
       const resp = await listarColaboradores(params)
@@ -127,7 +127,7 @@ export default function Colaboradores() {
       <Table
         loading={loading}
         loadingText="Carregando colaboradores..."
-        items={colaboradores}
+        items={colaboradores.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE)}
         columnDefinitions={[
           {
             id: 'nome',
