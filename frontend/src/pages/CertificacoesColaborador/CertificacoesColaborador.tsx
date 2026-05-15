@@ -61,7 +61,7 @@ export default function CertificacoesColaborador() {
     try {
       const [certResp, colabResp] = await Promise.all([
         listarCertificacoes(),
-        listarColaboradores(),
+        listarColaboradores({ page_size: 100 }),
       ])
       setCertificacoes(certResp.data)
       setColaboradores(colabResp.data)
@@ -117,6 +117,7 @@ export default function CertificacoesColaborador() {
       colaborador: c,
       certs: certificacoes.filter((cert) => cert.colaborador_id === c.id),
     }))
+    .sort((a, b) => a.colaborador.nome.localeCompare(b.colaborador.nome))
 
   const colabOptions = colaboradores.map((c) => ({ label: c.nome, value: String(c.id) }))
 
@@ -125,6 +126,7 @@ export default function CertificacoesColaborador() {
       <SpaceBetween size="l">
         <Header
           variant="h1"
+          counter={`(${certificacoes.length} certificacoes — ${agrupado.length} colaboradores)`}
           actions={
             <Button variant="primary" iconName="add-plus" onClick={() => setModalAberto(true)}>
               Nova Certificacao
