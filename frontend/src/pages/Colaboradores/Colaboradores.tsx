@@ -140,7 +140,7 @@ export default function Colaboradores() {
             ),
             sortingField: 'nome',
           },
-          { id: 'departamento', header: 'Departamento', cell: (c) => c.departamento || '-' },
+          { id: 'departamento', header: 'Departamento', cell: (c) => (c as any).departamento_nome || c.departamento || '-' },
           {
             id: 'cargo',
             header: 'Cargo / Nivel',

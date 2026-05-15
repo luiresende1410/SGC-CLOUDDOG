@@ -4,6 +4,7 @@
   matricula: string
   departamento_id: number
   departamento?: string
+  departamento_nome?: string
   cargo: string
   nivel?: string
   tipo_contrato: 'CLT' | 'PJ'
