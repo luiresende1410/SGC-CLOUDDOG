@@ -71,6 +71,7 @@ def listar_colaboradores(
     if ativo is not None:
         query = query.filter(models.Colaborador.ativo == ativo)
 
+    query = query.order_by(models.Colaborador.nome)
     offset = (page - 1) * page_size
     colaboradores = query.offset(offset).limit(page_size).all()
 
