@@ -28,9 +28,7 @@ export default function Guia() {
                 { campo: 'Colaboradores com custo', desc: 'Quantidade de colaboradores com lancamento no periodo selecionado' },
                 { campo: 'Custo total no periodo', desc: 'Soma de todos os custos do mes/ano selecionado' },
                 { campo: 'Departamentos ativos', desc: 'Quantidade de departamentos com colaboradores' },
-                { campo: 'Total de certificacoes', desc: 'Quantidade total de certificacoes cadastradas' },
-                { campo: 'Certificacoes por Tipo', desc: 'Grafico de pizza agrupado por provedor (AWS, GCP, Terraform, etc.)' },
-                { campo: 'Certificacoes por Departamento', desc: 'Grafico de barras mostrando quantidade por departamento e provedor' },
+                { campo: 'Distribuicao de Custos', desc: 'Grafico de pizza mostrando o percentual de custo por departamento' },
               ]}
               columnDefinitions={[
                 { id: 'campo', header: 'Elemento', cell: (i) => <Box fontWeight="bold">{i.campo}</Box> },
@@ -48,9 +46,9 @@ export default function Guia() {
           </SpaceBetween>
         </ExpandableSection>
 
-        <ExpandableSection headerText="Certificacoes por Colaborador" variant="container">
+        <ExpandableSection headerText="Certificacoes" variant="container">
           <SpaceBetween size="s">
-            <Box>Lista todas as certificacoes cadastradas, agrupadas por colaborador em secoes expandiveis.</Box>
+            <Box>Lista todas as certificacoes cadastradas, agrupadas por colaborador em secoes expandiveis. Inclui graficos de distribuicao por tipo (provedor) e por departamento.</Box>
             <Table
               items={[
                 { campo: 'Tipo', desc: 'Provedor da certificacao (AWS, GCP, Azure, Terraform, Datadog, etc.)' },
@@ -129,6 +127,16 @@ export default function Guia() {
             <Box variant="small" color="text-body-secondary">
               Acoes disponiveis: Editar, ver Historico de eventos, ver Certificacoes (Certs) e Inativar.
               O historico registra automaticamente mudancas de cargo, departamento, contrato e salario.
+            </Box>
+          </SpaceBetween>
+        </ExpandableSection>
+
+        <ExpandableSection headerText="Colaboradores Inativos" variant="container">
+          <SpaceBetween size="s">
+            <Box>Lista todos os colaboradores que foram inativados, com data de saida. Acessivel apenas por administradores.</Box>
+            <Box variant="small" color="text-body-secondary">
+              Colaboradores inativos nao aparecem mais na tela principal de Colaboradores.
+              O historico de custos e eventos e preservado.
             </Box>
           </SpaceBetween>
         </ExpandableSection>
