@@ -66,7 +66,7 @@ export default function Colaboradores() {
     setLoading(true)
     setErro('')
     try {
-      const params: any = { page: 1, page_size: 100 }
+      const params: any = { page: 1, page_size: 100, ativo: true }
       if (busca) params.q = busca
       if (depFiltro) params.departamento_id = Number(depFiltro)
       const resp = await listarColaboradores(params)

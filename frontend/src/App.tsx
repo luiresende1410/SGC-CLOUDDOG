@@ -15,6 +15,7 @@ import Departamentos from './pages/configuracoes/Departamentos/Departamentos'
 import Usuarios from './pages/configuracoes/Usuarios/Usuarios'
 import CertificacoesColaborador from './pages/CertificacoesColaborador/CertificacoesColaborador'
 import Guia from './pages/Guia/Guia'
+import ColaboradoresInativos from './pages/ColaboradoresInativos/ColaboradoresInativos'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
@@ -78,7 +79,15 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-            <Route
+                  <Route
+        path="/colaboradores-inativos"
+        element={
+          <ProtectedRoute>
+            <ColaboradoresInativos />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/guia"
         element={
           <ProtectedRoute>

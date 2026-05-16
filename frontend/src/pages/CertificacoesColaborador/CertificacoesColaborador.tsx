@@ -11,7 +11,11 @@ import FormField from '@cloudscape-design/components/form-field'
 import Input from '@cloudscape-design/components/input'
 import ExpandableSection from '@cloudscape-design/components/expandable-section'
 import Badge from '@cloudscape-design/components/badge'
-import { listarCertificacoes, criarCertificacao, excluirCertificacao } from '../../api/certificacoes'
+import Container from '@cloudscape-design/components/container'
+import Grid from '@cloudscape-design/components/grid'
+import PieChart from '@cloudscape-design/components/pie-chart'
+import BarChart from '@cloudscape-design/components/bar-chart'
+import { listarCertificacoes, criarCertificacao, excluirCertificacao, relatorioCertificacoes } from '../../api/certificacoes'
 import { listarColaboradores } from '../../api/colaboradores'
 import type { Certificacao, Colaborador } from '../../types'
 
@@ -39,7 +43,12 @@ const BADGE_COLORS: Record<string, string> = {
   AWS: 'blue', GCP: 'green', Azure: 'blue', Datadog: 'grey', Terraform: 'grey', Kubernetes: 'blue',
 }
 
+const CORES_TIPO = ['#0972d3', '#1b660f', '#d91515', '#9469d6', '#d68f00', '#067f68', '#c33d69', '#2ea597']
+
 const fmtDate = (d?: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'
+
+interface CertPorTipo { tipo: string; quantidade: number }
+interface CertPorDep { departamento: string; tipo: string; quantidade: number }
 
 export default function CertificacoesColaborador() {
   const [certificacoes, setCertificacoes] = useState<Certificacao[]>([])
@@ -55,16 +64,25 @@ export default function CertificacoesColaborador() {
   const [dataExpiracao, setDataExpiracao] = useState('')
   const [salvando, setSalvando] = useState(false)
 
+  // Graficos
+  const [totalCertificacoes, setTotalCertificacoes] = useState(0)
+  const [certPorTipo, setCertPorTipo] = useState<CertPorTipo[]>([])
+  const [certPorDep, setCertPorDep] = useState<CertPorDep[]>([])
+
   const carregar = useCallback(async () => {
     setLoading(true)
     setErro('')
     try {
-      const [certResp, colabResp] = await Promise.all([
+      const [certResp, colabResp, relResp] = await Promise.all([
         listarCertificacoes(),
         listarColaboradores({ page_size: 100 }),
+        relatorioCertificacoes(),
       ])
       setCertificacoes(certResp.data)
       setColaboradores(colabResp.data)
+      setTotalCertificacoes(relResp.data.total)
+      setCertPorTipo(relResp.data.por_tipo)
+      setCertPorDep(relResp.data.por_departamento)
     } catch {
       setErro('Erro ao carregar certificacoes.')
     } finally {
@@ -121,6 +139,19 @@ export default function CertificacoesColaborador() {
 
   const colabOptions = colaboradores.map((c) => ({ label: c.nome, value: String(c.id) }))
 
+  // Dados para grafico de barras
+  const depNames = [...new Set(certPorDep.map((d) => d.departamento))]
+  const tiposUnicos = [...new Set(certPorDep.map((d) => d.tipo))]
+  const barSeries = tiposUnicos.map((t, idx) => ({
+    title: t,
+    type: 'bar' as const,
+    data: depNames.map((dep) => ({
+      x: dep,
+      y: certPorDep.find((d) => d.departamento === dep && d.tipo === t)?.quantidade || 0,
+    })),
+    color: CORES_TIPO[idx % CORES_TIPO.length],
+  }))
+
   return (
     <>
       <SpaceBetween size="l">
@@ -138,6 +169,50 @@ export default function CertificacoesColaborador() {
 
         {erro && <Alert type="error" onDismiss={() => setErro('')}>{erro}</Alert>}
 
+        {/* Graficos */}
+        {certPorTipo.length > 0 && (
+          <Grid gridDefinition={[{ colspan: { default: 12, m: 6 } }, { colspan: { default: 12, m: 6 } }]}>
+            <Container header={<Header variant="h2" description="Distribuicao por provedor/tecnologia">Certificacoes por Tipo</Header>}>
+              <PieChart
+                data={certPorTipo.map((item, idx) => ({
+                  title: item.tipo,
+                  value: item.quantidade,
+                  color: CORES_TIPO[idx % CORES_TIPO.length],
+                }))}
+                detailPopoverContent={(datum) => [
+                  { key: 'Quantidade', value: datum.value.toString() },
+                  { key: 'Percentual', value: `${((datum.value / totalCertificacoes) * 100).toFixed(1)}%` },
+                ]}
+                segmentDescription={(datum) => `${datum.value} certificacao${datum.value !== 1 ? 'es' : ''}`}
+                size="medium"
+                variant="donut"
+                innerMetricDescription="certificacoes"
+                innerMetricValue={totalCertificacoes.toString()}
+                empty={<Box textAlign="center">Sem dados</Box>}
+                noMatch={<Box textAlign="center">Sem resultados</Box>}
+              />
+            </Container>
+            <Container header={<Header variant="h2" description="Quantidade por departamento e tipo">Certificacoes por Departamento</Header>}>
+              {depNames.length > 0 ? (
+                <BarChart
+                  series={barSeries}
+                  xDomain={depNames}
+                  yTitle="Quantidade"
+                  xTitle="Departamento"
+                  stackedBars
+                  horizontalBars
+                  height={Math.max(200, depNames.length * 50)}
+                  empty={<Box textAlign="center">Sem dados</Box>}
+                  noMatch={<Box textAlign="center">Sem resultados</Box>}
+                />
+              ) : (
+                <Box textAlign="center" padding="l">Sem dados de certificacoes por departamento.</Box>
+              )}
+            </Container>
+          </Grid>
+        )}
+
+        {/* Lista por colaborador */}
         {loading ? (
           <Box textAlign="center" padding="l">Carregando...</Box>
         ) : agrupado.length === 0 ? (

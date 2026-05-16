@@ -9,12 +9,11 @@ import Alert from '@cloudscape-design/components/alert'
 import Spinner from '@cloudscape-design/components/spinner'
 import ColumnLayout from '@cloudscape-design/components/column-layout'
 import PieChart from '@cloudscape-design/components/pie-chart'
-import BarChart from '@cloudscape-design/components/bar-chart'
 import PeriodFilter from '../../components/PeriodFilter/PeriodFilter'
 import { relatorioColaboradores, relatorioDepartamentos } from '../../api/relatorios'
-import { relatorioCertificacoes } from '../../api/certificacoes'
 import { useFilterStore } from '../../store/filterStore'
-import type { CertificacaoPorTipo, CertificacaoPorDepartamento } from '../../types'
+
+const CORES_DEP = ['#0972d3', '#1b660f', '#d91515', '#9469d6', '#d68f00', '#067f68', '#c33d69', '#2ea597', '#44b9d6', '#7d8998']
 
 const formatBRL = (valor: number) =>
   valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -25,7 +24,6 @@ const toNumber = (v: unknown): number => {
   return isNaN(n) ? 0 : n
 }
 
-const CORES_TIPO = ['#0972d3', '#1b660f', '#d91515', '#9469d6', '#d68f00', '#067f68', '#c33d69', '#2ea597']
 
 interface StatCardProps {
   title: string
@@ -85,10 +83,6 @@ export default function Dashboard() {
   const [topDeps, setTopDeps] = useState<DepCusto[]>([])
 
   // Certificacoes
-  const [totalCertificacoes, setTotalCertificacoes] = useState(0)
-  const [certPorTipo, setCertPorTipo] = useState<CertificacaoPorTipo[]>([])
-  const [certPorDep, setCertPorDep] = useState<CertificacaoPorDepartamento[]>([])
-  const [loadingCerts, setLoadingCerts] = useState(false)
 
   useEffect(() => {
     const carregar = async () => {
@@ -131,39 +125,11 @@ export default function Dashboard() {
     carregar()
   }, [mes, ano])
 
-  useEffect(() => {
-    const carregarCerts = async () => {
-      setLoadingCerts(true)
-      try {
-        const resp = await relatorioCertificacoes()
-        setTotalCertificacoes(resp.data.total)
-        setCertPorTipo(resp.data.por_tipo)
-        setCertPorDep(resp.data.por_departamento)
-      } catch {
-        // Silencioso
-      } finally {
-        setLoadingCerts(false)
-      }
-    }
-    carregarCerts()
-  }, [])
 
   const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
   const periodoLabel = `${meses[mes - 1]}/${ano}`
 
   // Dados para grafico de barras por departamento
-  const depNames = [...new Set(certPorDep.map((d) => d.departamento))]
-  const tiposUnicos = [...new Set(certPorDep.map((d) => d.tipo))]
-  const barSeries = tiposUnicos.map((tipo, idx) => ({
-    title: tipo,
-    type: 'bar' as const,
-    data: depNames.map((dep) => ({
-      x: dep,
-      y: certPorDep.find((d) => d.departamento === dep && d.tipo === tipo)?.quantidade || 0,
-    })),
-    color: CORES_TIPO[idx % CORES_TIPO.length],
-  }))
-
   return (
     <ContentLayout
       header={
@@ -212,82 +178,32 @@ export default function Dashboard() {
             subtitle={periodoLabel}
             loading={loading}
           />
-          <StatCard
-            title="Total de certificacoes"
-            value={totalCertificacoes.toString()}
-            subtitle="todas ativas"
-            loading={loadingCerts}
-            color="text-status-success"
-          />
+          
         </Grid>
 
-        {/* Graficos de certificacoes */}
-        {!loadingCerts && certPorTipo.length > 0 && (
-          <Grid
-            gridDefinition={[
-              { colspan: { default: 12, m: 6 } },
-              { colspan: { default: 12, m: 6 } },
-            ]}
-          >
-            <Container
-              header={
-                <Header variant="h2" description="Distribuicao por provedor/tecnologia">
-                  Certificacoes por Tipo
-                </Header>
-              }
-            >
+              {/* Grafico de pizza - custo por departamento */}
+            <Container header={<Header variant="h2" description="Percentual do custo total por departamento">Distribuicao de Custos</Header>}>
               <PieChart
-                data={certPorTipo.map((item, idx) => ({
-                  title: item.tipo,
-                  value: item.quantidade,
-                  color: CORES_TIPO[idx % CORES_TIPO.length],
+                data={topDeps.map((dep, idx) => ({
+                  title: dep.nome,
+                  value: dep.total,
+                  color: CORES_DEP[idx % CORES_DEP.length],
                 }))}
                 detailPopoverContent={(datum) => [
-                  { key: 'Quantidade', value: datum.value.toString() },
-                  {
-                    key: 'Percentual',
-                    value: `${((datum.value / totalCertificacoes) * 100).toFixed(1)}%`,
-                  },
+                  { key: 'Custo', value: formatBRL(datum.value) },
+                  { key: 'Percentual', value: totalCusto > 0 ? ((datum.value / totalCusto) * 100).toFixed(1) + '%' : '0%' },
                 ]}
-                segmentDescription={(datum) =>
-                  `${datum.value} certificacao${datum.value !== 1 ? 'es' : ''}`
-                }
-                size="medium"
+                segmentDescription={(datum) => formatBRL(datum.value)}
+                size="large"
                 variant="donut"
-                innerMetricDescription="certificacoes"
-                innerMetricValue={totalCertificacoes.toString()}
+                innerMetricDescription="custo total"
+                innerMetricValue={formatBRL(totalCusto)}
                 empty={<Box textAlign="center">Sem dados</Box>}
                 noMatch={<Box textAlign="center">Sem resultados</Box>}
               />
             </Container>
 
-            <Container
-              header={
-                <Header variant="h2" description="Quantidade por departamento e tipo">
-                  Certificacoes por Departamento
-                </Header>
-              }
-            >
-              {depNames.length > 0 ? (
-                <BarChart
-                  series={barSeries}
-                  xDomain={depNames}
-                  yTitle="Quantidade"
-                  xTitle="Departamento"
-                  stackedBars
-                  horizontalBars
-                  height={Math.max(200, depNames.length * 50)}
-                  empty={<Box textAlign="center">Sem dados</Box>}
-                  noMatch={<Box textAlign="center">Sem resultados</Box>}
-                />
-              ) : (
-                <Box textAlign="center" padding="l">Sem dados de certificacoes por departamento.</Box>
-              )}
-            </Container>
-          </Grid>
-        )}
-
-        {/* Ranking de departamentos por custo */}
+          {/* Ranking de departamentos por custo */}
         {!loading && topDeps.length > 0 && (
           <Container
             header={
