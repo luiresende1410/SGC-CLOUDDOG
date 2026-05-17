@@ -24,6 +24,33 @@ from app.database import get_db
 router = APIRouter(prefix="/colaboradores", tags=["Colaboradores"])
 
 
+def _classificar_nivel(db: Session, salario_base) -> str | None:
+    """Classifica o nivel do colaborador com base na tabela salarial do ano atual."""
+    if not salario_base or float(salario_base) <= 0:
+        return None
+    from sqlalchemy import func
+    ano_atual = date.today().year
+    # Busca niveis da tabela salarial agrupados por nivel com max salario
+    niveis = (
+        db.query(
+            models.TabelaSalarial.nivel,
+            func.max(models.TabelaSalarial.salario).label("max_salario")
+        )
+        .filter(models.TabelaSalarial.ano == ano_atual)
+        .group_by(models.TabelaSalarial.nivel)
+        .order_by(func.max(models.TabelaSalarial.salario))
+        .all()
+    )
+    if not niveis:
+        return None
+    salario = float(salario_base)
+    for nivel_row in niveis:
+        if salario <= float(nivel_row.max_salario):
+            return nivel_row.nivel
+    # Se esta acima de todos, retorna o maior nivel
+    return niveis[-1].nivel
+
+
 def _registrar_evento(
     db: Session,
     colaborador: models.Colaborador,
@@ -98,7 +125,13 @@ def criar_colaborador(
             detail=f"Matricula '{dados.matricula}' ja esta em uso.",
         )
 
-    colaborador = models.Colaborador(**dados.model_dump())
+    dados_dict = dados.model_dump()
+    # Classifica nivel automaticamente pelo salario
+    if dados_dict.get("salario_base"):
+        nivel_auto = _classificar_nivel(db, dados_dict["salario_base"])
+        if nivel_auto:
+            dados_dict["nivel"] = nivel_auto
+    colaborador = models.Colaborador(**dados_dict)
     db.add(colaborador)
     db.flush()
 
@@ -164,6 +197,12 @@ def atualizar_colaborador(
     novos_dados = dados.model_dump(exclude_unset=True)
     for campo, valor in novos_dados.items():
         setattr(colaborador, campo, valor)
+
+    # Reclassifica nivel se salario mudou
+    if "salario_base" in novos_dados and colaborador.salario_base:
+        nivel_auto = _classificar_nivel(db, colaborador.salario_base)
+        if nivel_auto:
+            colaborador.nivel = nivel_auto
 
     db.flush()
 
