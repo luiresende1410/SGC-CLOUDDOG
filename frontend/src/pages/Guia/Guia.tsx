@@ -102,7 +102,6 @@ export default function Guia() {
           <Box>Permite importar dados de colaboradores e custos em lote via arquivo. Util para carga inicial ou atualizacoes em massa.</Box>
         </ExpandableSection>
 
-        <Header variant="h2">Configuracoes</Header>
 
         <ExpandableSection headerText="Colaboradores" variant="container">
           <SpaceBetween size="s">
