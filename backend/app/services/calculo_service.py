@@ -1,5 +1,5 @@
-"""
-Servico de calculo automatico de custos.
+"""Servico de calculo automatico de custos.
+
 Dado um colaborador + variaveis mensais, calcula todos os encargos
 usando os ParametrosCalculo cadastrados no banco.
 """
@@ -8,6 +8,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Dict
 
 from sqlalchemy.orm import Session
+
 from app import models
 
 
@@ -24,8 +25,8 @@ def calcular_custo_mensal(
     comissoes: Decimal = Decimal("0"),
     hora_extra: Decimal = Decimal("0"),
 ) -> Dict[str, Decimal]:
-    """
-    Calcula todos os componentes de custo de um colaborador para um mes.
+    """Calcula todos os componentes de custo de um colaborador para um mes.
+
     Aplica dinamicamente todos os parametros cadastrados.
     """
     parametros = _get_parametros(db)
@@ -62,8 +63,14 @@ def calcular_custo_mensal(
         componentes["ferias"]          = r(remuneracao / 12)
         componentes["decimo_terceiro"] = r(remuneracao / 12)
 
+    # Conta colaboradores ativos para rateio (uma unica query)
+    total_colaboradores_ativos = db.query(models.Colaborador).filter(
+        models.Colaborador.ativo == True
+    ).count()
+
     # Aplica parametros dinamicamente
     tipo_contrato = colaborador.tipo_contrato  # CLT ou PJ
+
     for p in parametros:
         # Verifica se aplica a este tipo de contrato
         if p.aplica_a != "todos" and p.aplica_a != tipo_contrato:
@@ -76,6 +83,10 @@ def calcular_custo_mensal(
             componentes[chave] = r(remuneracao * valor)
         elif p.tipo_valor == "fixo":
             componentes[chave] = r(valor)
+        elif p.tipo_valor == "rateio":
+            # Divide o valor total pelo numero de colaboradores ativos
+            if total_colaboradores_ativos > 0:
+                componentes[chave] = r(valor / Decimal(str(total_colaboradores_ativos)))
         # tipo 'numerico' nao e aplicado automaticamente (referencia apenas)
 
     return componentes

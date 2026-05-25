@@ -17,6 +17,7 @@ import type { ParametroCalculo } from '../../../types'
 const TIPO_VALOR_OPTIONS = [
   { label: 'Percentual (%)', value: 'percentual' },
   { label: 'Valor Fixo (R$)', value: 'fixo' },
+  { label: 'Rateio (÷ colaboradores)', value: 'rateio' },
   { label: 'Numerico (referencia)', value: 'numerico' },
 ]
 
@@ -26,16 +27,18 @@ const APLICA_A_OPTIONS = [
   { label: 'Apenas PJ', value: 'PJ' },
 ]
 
-const BADGE_TIPO: Record<string, { label: string; color: 'blue' | 'green' | 'grey' }> = {
+const BADGE_TIPO: Record<string, { label: string; color: 'blue' | 'green' | 'grey' | 'red' }> = {
   percentual: { label: '%', color: 'blue' },
   fixo:       { label: 'R$', color: 'green' },
+  rateio:     { label: '÷', color: 'red' },
   numerico:   { label: 'Ref', color: 'grey' },
 }
 
 const formatarValor = (p: ParametroCalculo): string => {
   const v = Number(p.valor)
   if (p.tipo_valor === 'percentual') return `${(v * 100).toFixed(2)}%`
-  if (p.tipo_valor === 'fixo') return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  if (p.tipo_valor === 'fixo' || p.tipo_valor === 'rateio')
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
 }
 
@@ -136,6 +139,20 @@ export default function ParametrosCalculo() {
     setCriarTipo('fixo'); setCriarAplica('todos')
   }
 
+  const getValorLabel = (tipo: string) => {
+    if (tipo === 'percentual') return 'Valor (%)'
+    if (tipo === 'fixo') return 'Valor (R$)'
+    if (tipo === 'rateio') return 'Valor Total (R$)'
+    return 'Valor'
+  }
+
+  const getValorDescription = (tipo: string) => {
+    if (tipo === 'percentual') return 'Informe em % (ex: 8 para 8%)'
+    if (tipo === 'fixo') return 'Informe em reais (ex: 343.27)'
+    if (tipo === 'rateio') return 'Valor total que sera dividido pelo numero de colaboradores ativos'
+    return ''
+  }
+
   return (
     <ContentLayout header={<Header variant="h1">Parametros de Calculo</Header>}>
       <SpaceBetween size="l">
@@ -208,8 +225,8 @@ export default function ParametrosCalculo() {
       >
         <SpaceBetween size="m">
           <FormField
-            label={editando?.tipo_valor === 'percentual' ? 'Valor (%)' : editando?.tipo_valor === 'fixo' ? 'Valor (R$)' : 'Valor'}
-            description={editando?.tipo_valor === 'percentual' ? 'Informe em % (ex: 8 para 8%)' : editando?.tipo_valor === 'fixo' ? 'Informe em reais (ex: 343.27)' : ''}
+            label={getValorLabel(editando?.tipo_valor || '')}
+            description={getValorDescription(editando?.tipo_valor || '')}
           >
             <Input value={novoValor} onChange={({ detail }) => setNovoValor(detail.value)} type="number" />
           </FormField>
@@ -231,9 +248,7 @@ export default function ParametrosCalculo() {
             <SpaceBetween direction="horizontal" size="xs">
               <Button variant="link" onClick={limparCriar}>Cancelar</Button>
               <Button variant="primary" loading={salvando} onClick={handleCriar}
-                disabled={!criarChave.trim() || !criarValor.trim()}>
-                Criar
-              </Button>
+                disabled={!criarChave.trim() || !criarValor.trim()}>Criar</Button>
             </SpaceBetween>
           </Box>
         }
@@ -242,6 +257,7 @@ export default function ParametrosCalculo() {
           <FormField label="Chave (nome do parametro)" description="Ex: VALE_CULTURA, PLANO_ODONTO">
             <Input value={criarChave} onChange={({ detail }) => setCriarChave(detail.value)} placeholder="NOME_DO_PARAMETRO" />
           </FormField>
+
           <FormField label="Tipo do valor">
             <Select
               selectedOption={TIPO_VALOR_OPTIONS.find((o) => o.value === criarTipo) || TIPO_VALOR_OPTIONS[1]}
@@ -249,6 +265,7 @@ export default function ParametrosCalculo() {
               onChange={({ detail }) => setCriarTipo(detail.selectedOption.value || 'fixo')}
             />
           </FormField>
+
           <FormField label="Aplica a">
             <Select
               selectedOption={APLICA_A_OPTIONS.find((o) => o.value === criarAplica) || APLICA_A_OPTIONS[0]}
@@ -256,12 +273,14 @@ export default function ParametrosCalculo() {
               onChange={({ detail }) => setCriarAplica(detail.selectedOption.value || 'todos')}
             />
           </FormField>
+
           <FormField
-            label={criarTipo === 'percentual' ? 'Valor (%)' : criarTipo === 'fixo' ? 'Valor (R$)' : 'Valor'}
-            description={criarTipo === 'percentual' ? 'Informe em % (ex: 8 para 8%)' : criarTipo === 'fixo' ? 'Informe em reais' : ''}
+            label={getValorLabel(criarTipo)}
+            description={getValorDescription(criarTipo)}
           >
             <Input value={criarValor} onChange={({ detail }) => setCriarValor(detail.value)} type="number" placeholder="0.00" />
           </FormField>
+
           <FormField label="Descricao (opcional)">
             <Input value={criarDescricao} onChange={({ detail }) => setCriarDescricao(detail.value)} placeholder="Descricao do parametro" />
           </FormField>
