@@ -8,14 +8,10 @@ import Modal from '@cloudscape-design/components/modal'
 import FormField from '@cloudscape-design/components/form-field'
 import Input from '@cloudscape-design/components/input'
 import Alert from '@cloudscape-design/components/alert'
-import Badge from '@cloudscape-design/components/badge'
 import ContentLayout from '@cloudscape-design/components/content-layout'
 import { listarDepartamentos, criarDepartamento, atualizarDepartamento, excluirDepartamento } from '../../../api/departamentos'
 
-interface Departamento { id: number; nome: string; budget_mensal?: number | null }
-
-const formatBRL = (v: number | null | undefined) =>
-  v ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'
+interface Departamento { id: number; nome: string }
 
 export default function Departamentos() {
   const [departamentos, setDepartamentos] = useState<Departamento[]>([])
@@ -26,7 +22,6 @@ export default function Departamentos() {
   const [alvo, setAlvo] = useState<Departamento | null>(null)
   const [salvando, setSalvando] = useState(false)
   const [nome, setNome] = useState('')
-  const [budget, setBudget] = useState('')
 
   const carregar = async () => {
     setLoading(true)
@@ -44,21 +39,20 @@ export default function Departamentos() {
   const abrir = (tipo: 'novo' | 'editar' | 'excluir', d?: Departamento) => {
     setErro('')
     setAlvo(d || null)
-    if (tipo === 'novo') { setNome(''); setBudget('') }
-    if (tipo === 'editar' && d) { setNome(d.nome); setBudget(d.budget_mensal ? String(d.budget_mensal) : '') }
+    if (tipo === 'novo') { setNome('') }
+    if (tipo === 'editar' && d) { setNome(d.nome) }
     setModal(tipo)
   }
 
   const handleSalvar = async () => {
     if (!nome.trim()) { setErro('Informe o nome do departamento.'); return }
     setSalvando(true)
-    const budgetVal = budget ? parseFloat(budget.replace(',', '.')) : null
     try {
       if (modal === 'novo') {
-        await criarDepartamento({ nome: nome.trim(), budget_mensal: budgetVal })
+        await criarDepartamento(nome.trim())
         setSucesso('Departamento criado.')
       } else if (modal === 'editar' && alvo) {
-        await atualizarDepartamento(alvo.id, { nome: nome.trim(), budget_mensal: budgetVal })
+        await atualizarDepartamento(alvo.id, nome.trim())
         setSucesso('Departamento atualizado.')
       }
       fechar(); carregar()
@@ -92,12 +86,6 @@ export default function Departamentos() {
           columnDefinitions={[
             { id: 'nome', header: 'Nome', cell: (d) => <Box fontWeight="bold">{d.nome}</Box>, sortingField: 'nome' },
             {
-              id: 'budget', header: 'Budget Mensal',
-              cell: (d) => d.budget_mensal
-                ? <Box color="text-status-success" fontWeight="bold">{formatBRL(d.budget_mensal)}</Box>
-                : <Badge color="grey">Não definido</Badge>
-            },
-            {
               id: 'acoes', header: 'Acoes',
               cell: (d) => (
                 <SpaceBetween direction="horizontal" size="xs">
@@ -110,9 +98,7 @@ export default function Departamentos() {
           header={
             <Header counter={`(${departamentos.length})`} actions={
               <Button variant="primary" iconName="add-plus" onClick={() => abrir('novo')}>Novo Departamento</Button>
-            }>
-              Departamentos
-            </Header>
+            }>Departamentos</Header>
           }
           empty={<Box textAlign="center"><b>Nenhum departamento</b></Box>}
         />
@@ -121,7 +107,7 @@ export default function Departamentos() {
       <Modal
         visible={modal === 'novo' || modal === 'editar'}
         onDismiss={fechar}
-        header={modal === 'novo' ? 'Novo Departamento' : `Editar — ${alvo?.nome}`}
+        header={modal === 'novo' ? 'Novo Departamento' : `Editar - ${alvo?.nome}`}
         footer={
           <Box float="right">
             <SpaceBetween direction="horizontal" size="xs">
@@ -135,14 +121,6 @@ export default function Departamentos() {
           {erro && <Alert type="error">{erro}</Alert>}
           <FormField label="Nome">
             <Input value={nome} onChange={({ detail }) => setNome(detail.value)} placeholder="Nome do departamento" />
-          </FormField>
-          <FormField label="Budget Mensal (R$)" description="Limite de custo mensal para este departamento (opcional)">
-            <Input
-              type="number"
-              value={budget}
-              onChange={({ detail }) => setBudget(detail.value)}
-              placeholder="Ex: 50000"
-            />
           </FormField>
         </SpaceBetween>
       </Modal>

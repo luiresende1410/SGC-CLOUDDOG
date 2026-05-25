@@ -112,13 +112,27 @@ def agregar_por_departamento(
                 .filter(models.Departamento.nome == dept_nome)
                 .first()
             )
+            # Busca budget mensal da nova tabela
+            budget = None
+            if dept:
+                budget_reg = (
+                    db.query(models.BudgetDepartamento)
+                    .filter(
+                        models.BudgetDepartamento.departamento_id == dept.id,
+                        models.BudgetDepartamento.mes == mes,
+                        models.BudgetDepartamento.ano == ano,
+                    )
+                    .first()
+                )
+                budget = float(budget_reg.valor) if budget_reg else None
+
             departamentos[dept_nome] = {
                 "id": dept.id if dept else 0,
                 "nome": dept_nome,
                 "total": Decimal("0"),
                 "num_colaboradores": 0,
                 "colaboradores": [],
-                
+                "budget_mensal": budget,
             }
         departamentos[dept_nome]["total"] += colab["total"]
         departamentos[dept_nome]["num_colaboradores"] += 1

@@ -37,6 +37,7 @@ def relatorio_departamentos(
             id=d["id"], nome=d["nome"], total=d["total"],
             num_colaboradores=d["num_colaboradores"],
             colaboradores=[schemas.ColaboradorRelatorio(**c) for c in d["colaboradores"]],
+            budget_mensal=d.get("budget_mensal"),
         ))
     return schemas.RelatorioDepartamentosResponse(periodo={"mes": mes, "ano": ano}, departamentos=departamentos)
 

@@ -16,6 +16,7 @@ import Usuarios from './pages/configuracoes/Usuarios/Usuarios'
 import CertificacoesColaborador from './pages/CertificacoesColaborador/CertificacoesColaborador'
 import Guia from './pages/Guia/Guia'
 import ColaboradoresInativos from './pages/ColaboradoresInativos/ColaboradoresInativos'
+import Budgets from './pages/configuracoes/Budgets/Budgets'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
@@ -128,7 +129,15 @@ export default function App() {
         }
       />
       <Route
-        path="/configuracoes/usuarios"
+        path="/configuracoes/budgets"
+          element={
+            <ProtectedRoute>
+              <Budgets />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/configuracoes/usuarios"
         element={
           <ProtectedRoute>
             <Usuarios />

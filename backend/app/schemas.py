@@ -454,3 +454,37 @@ class CertificacaoResponse(CertificacaoBase):
     id: int
     colaborador_id: int
     model_config = ConfigDict(from_attributes=True)
+
+
+# ---------------------------------------------------------------------------
+# BudgetDepartamento
+# ---------------------------------------------------------------------------
+
+class BudgetDepartamentoBase(BaseModel):
+    departamento_id: int
+    mes: int
+    ano: int
+    valor: Decimal
+
+
+class BudgetDepartamentoCreate(BudgetDepartamentoBase):
+    pass
+
+
+class BudgetDepartamentoUpdate(BaseModel):
+    valor: Decimal
+
+
+class BudgetDepartamentoResponse(BudgetDepartamentoBase):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BudgetComparacaoItem(BaseModel):
+    departamento_id: int
+    departamento_nome: str
+    budget: Optional[Decimal] = None
+    custo_real: Decimal
+    diferenca: Optional[Decimal] = None
+    percentual_uso: Optional[float] = None
+    status: str  # "abaixo", "acima", "sem_budget"

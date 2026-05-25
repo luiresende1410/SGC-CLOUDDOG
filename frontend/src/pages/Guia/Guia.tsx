@@ -11,7 +11,6 @@ export default function Guia() {
   return (
     <ContentLayout header={<Header variant="h1">Guia do Sistema</Header>}>
       <SpaceBetween size="l">
-
         <Container header={<Header variant="h2">Visao Geral</Header>}>
           <Box>
             O SGC (Sistema de Gestao de Custos) permite gerenciar e analisar os custos mensais
@@ -42,7 +41,7 @@ export default function Guia() {
         <ExpandableSection headerText="Custos por Colaborador" variant="container">
           <SpaceBetween size="s">
             <Box>Exibe o detalhamento de custos de cada colaborador no periodo selecionado (mes/ano).</Box>
-            <Box>Cada linha mostra o colaborador, seu cargo, departamento e o custo total. Ao expandir, mostra todos os componentes de custo (remuneracao, FGTS, GPS, beneficios, etc.).</Box>
+            <Box>Cada linha mostra o colaborador, seu cargo, departamento e o custo total. Ao expandir, mostra todos os componentes de custo (remuneracao, FGTS, GPS, beneficios, rateios, etc.).</Box>
           </SpaceBetween>
         </ExpandableSection>
 
@@ -70,7 +69,20 @@ export default function Guia() {
         </ExpandableSection>
 
         <ExpandableSection headerText="Custos por Departamento" variant="container">
-          <Box>Exibe os custos agrupados por departamento no periodo selecionado. Mostra o total do departamento e permite expandir para ver os colaboradores individuais.</Box>
+          <SpaceBetween size="s">
+            <Box>
+              Exibe os custos agrupados por departamento no periodo selecionado. Mostra o total do departamento
+              e permite expandir para ver os colaboradores individuais.
+            </Box>
+            <Box>
+              Se houver um budget definido para o departamento no mes/ano selecionado, o sistema exibe
+              uma comparacao visual: badge verde ("Dentro do budget") ou vermelha ("Acima do budget"),
+              com barra de progresso indicando o percentual de uso.
+            </Box>
+            <Box variant="small" color="text-body-secondary">
+              Os budgets sao gerenciados na tela Configuracoes &gt; Budgets.
+            </Box>
+          </SpaceBetween>
         </ExpandableSection>
 
         <ExpandableSection headerText="Lancamento de Custo" variant="container">
@@ -93,7 +105,8 @@ export default function Guia() {
               variant="embedded"
             />
             <Box variant="small" color="text-body-secondary">
-              Apos o lancamento, o sistema aplica automaticamente todos os parametros configurados (FGTS, GPS, equipamentos, etc.) e gera o registro de custo completo.
+              Apos o lancamento, o sistema aplica automaticamente todos os parametros configurados
+              (FGTS, GPS, rateios, equipamentos, etc.) e gera o registro de custo completo.
             </Box>
           </SpaceBetween>
         </ExpandableSection>
@@ -101,7 +114,6 @@ export default function Guia() {
         <ExpandableSection headerText="Importacao" variant="container">
           <Box>Permite importar dados de colaboradores e custos em lote via arquivo. Util para carga inicial ou atualizacoes em massa.</Box>
         </ExpandableSection>
-
 
         <ExpandableSection headerText="Colaboradores" variant="container">
           <SpaceBetween size="s">
@@ -142,11 +154,10 @@ export default function Guia() {
 
         <ExpandableSection headerText="Departamentos" variant="container">
           <SpaceBetween size="s">
-            <Box>Gerencia os departamentos da empresa.</Box>
+            <Box>Gerencia os departamentos da empresa. Cada departamento agrupa colaboradores para fins de organizacao e relatorios de custo.</Box>
             <Table
               items={[
                 { campo: 'Nome', desc: 'Nome do departamento (ex: Desenvolvimento, Comercial)' },
-                { campo: 'Budget Mensal', desc: 'Limite de custo mensal para o departamento (opcional, usado como referencia)' },
               ]}
               columnDefinitions={[
                 { id: 'campo', header: 'Campo', cell: (i) => <Box fontWeight="bold">{i.campo}</Box> },
@@ -154,6 +165,50 @@ export default function Guia() {
               ]}
               variant="embedded"
             />
+            <Box variant="small" color="text-body-secondary">
+              O controle de budget por departamento e feito na tela Configuracoes &gt; Budgets,
+              onde e possivel definir valores diferentes para cada mes.
+            </Box>
+          </SpaceBetween>
+        </ExpandableSection>
+
+        <ExpandableSection headerText="Budgets" variant="container">
+          <SpaceBetween size="s">
+            <Box>
+              Gerencia o budget (limite de custo) mensal por departamento. Diferente de um valor fixo,
+              o budget pode variar a cada mes, permitindo ajustes sazonais ou por planejamento.
+            </Box>
+            <Table
+              items={[
+                { campo: 'Departamento', desc: 'Departamento ao qual o budget se aplica' },
+                { campo: 'Mes/Ano', desc: 'Periodo especifico do budget (ex: Mai/2025)' },
+                { campo: 'Valor (R$)', desc: 'Limite de custo para o departamento naquele mes' },
+              ]}
+              columnDefinitions={[
+                { id: 'campo', header: 'Campo', cell: (i) => <Box fontWeight="bold">{i.campo}</Box> },
+                { id: 'desc', header: 'Descricao', cell: (i) => i.desc },
+              ]}
+              variant="embedded"
+            />
+            <Box fontWeight="bold">Comparacao Budget vs Custo Real:</Box>
+            <Table
+              items={[
+                { campo: 'Budget', desc: 'Valor definido como limite para o departamento no mes' },
+                { campo: 'Custo Real', desc: 'Soma dos custos lancados para o departamento no mes' },
+                { campo: 'Diferenca', desc: 'Budget - Custo Real (positivo = economia, negativo = estouro)' },
+                { campo: '% Uso', desc: 'Percentual do budget consumido (verde ate 80%, laranja ate 100%, vermelho acima)' },
+                { campo: 'Status', desc: 'Dentro (verde) ou Acima (vermelho) do budget' },
+              ]}
+              columnDefinitions={[
+                { id: 'campo', header: 'Indicador', cell: (i) => <Box fontWeight="bold">{i.campo}</Box> },
+                { id: 'desc', header: 'Descricao', cell: (i) => i.desc },
+              ]}
+              variant="embedded"
+            />
+            <Box variant="small" color="text-body-secondary">
+              Funcionalidade "Copiar para outro mes": permite replicar todos os budgets de um periodo
+              para outro, util quando os valores se mantem entre meses consecutivos.
+            </Box>
           </SpaceBetween>
         </ExpandableSection>
 
@@ -167,9 +222,9 @@ export default function Guia() {
             <Table
               items={[
                 { campo: 'Chave', desc: 'Identificador unico do parametro (ex: FGTS, EQUIPAMENTOS_MENSAL)' },
-                { campo: 'Tipo do valor', desc: 'Percentual (%) — multiplica pela remuneracao | Valor Fixo (R$) — soma direto ao custo | Numerico — apenas referencia, nao aplicado' },
+                { campo: 'Tipo do valor', desc: 'Percentual (%) — multiplica pela remuneracao | Valor Fixo (R$) — soma direto ao custo | Rateio (\u00f7) — divide o valor total pelo numero de colaboradores ativos | Numerico — apenas referencia, nao aplicado' },
                 { campo: 'Aplica a', desc: 'Todos — CLT e PJ | Apenas CLT | Apenas PJ' },
-                { campo: 'Valor', desc: 'O numero em si (em % ou R$ dependendo do tipo)' },
+                { campo: 'Valor', desc: 'O numero em si (em %, R$ ou valor total para rateio)' },
                 { campo: 'Descricao', desc: 'Texto livre para documentar o parametro' },
               ]}
               columnDefinitions={[
@@ -178,9 +233,23 @@ export default function Guia() {
               ]}
               variant="embedded"
             />
+            <Box fontWeight="bold">Tipos de parametro:</Box>
+            <Table
+              items={[
+                { tipo: 'Percentual (%)', exemplo: 'FGTS = 8% — calcula 8% sobre a remuneracao total' },
+                { tipo: 'Valor Fixo (R$)', exemplo: 'PLANO_ODONTO = R$ 50 — soma R$ 50 ao custo de cada colaborador' },
+                { tipo: 'Rateio (\u00f7 colaboradores)', exemplo: 'ESCRITORIO_MENSAL = R$ 30.000 — divide pelos colaboradores ativos (ex: 35 colaboradores = R$ 857,14 cada)' },
+                { tipo: 'Numerico (referencia)', exemplo: 'COLABORADORES_RATEIO = 35 — valor de referencia, nao aplicado automaticamente' },
+              ]}
+              columnDefinitions={[
+                { id: 'tipo', header: 'Tipo', cell: (i) => <Box fontWeight="bold">{i.tipo}</Box> },
+                { id: 'exemplo', header: 'Exemplo', cell: (i) => i.exemplo },
+              ]}
+              variant="embedded"
+            />
             <Box variant="small" color="text-body-secondary">
-              Exemplo: Se criar PLANO_ODONTO, tipo "Valor Fixo", aplica a "Apenas CLT", valor 50 —
-              todo colaborador CLT tera R$ 50,00 adicionado ao custo mensal no proximo lancamento.
+              O tipo Rateio e ideal para custos compartilhados como escritorio, equipamentos e infraestrutura.
+              O valor total e dividido igualmente entre todos os colaboradores ativos no momento do lancamento.
             </Box>
           </SpaceBetween>
         </ExpandableSection>
@@ -226,7 +295,6 @@ export default function Guia() {
             </Box>
           </SpaceBetween>
         </ExpandableSection>
-
       </SpaceBetween>
     </ContentLayout>
   )

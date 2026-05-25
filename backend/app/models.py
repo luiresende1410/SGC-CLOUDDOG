@@ -159,3 +159,23 @@ class Usuario(Base):
     ativo = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False, server_default="false")
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class BudgetDepartamento(Base):
+    __tablename__ = "budget_departamento"
+
+    id = Column(Integer, primary_key=True, index=True)
+    departamento_id = Column(Integer, ForeignKey("departamentos.id", ondelete="CASCADE"), nullable=False)
+    mes = Column(SmallInteger, nullable=False)
+    ano = Column(SmallInteger, nullable=False)
+    valor = Column(Numeric(15, 2), nullable=False)
+    criado_em = Column(DateTime(timezone=True), server_default=func.now())
+    atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("departamento_id", "mes", "ano", name="uq_budget_dept_mes_ano"),
+        CheckConstraint("valor >= 0", name="ck_budget_valor_positivo"),
+        CheckConstraint("mes >= 1 AND mes <= 12", name="ck_budget_mes_valido"),
+    )
+
+    departamento = relationship("Departamento", backref="budgets")

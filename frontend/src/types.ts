@@ -109,3 +109,19 @@ export interface ResumoBillable {
   total: number;
   percentual_billable: number;
 }
+
+
+export interface Departamento {
+  id: number
+  nome: string
+  budget_mensal?: number | null
+}
+
+export interface ParametroCalculo {
+  id: number
+  chave: string
+  valor: number
+  descricao?: string
+  tipo_valor: string
+  aplica_a: string
+}
